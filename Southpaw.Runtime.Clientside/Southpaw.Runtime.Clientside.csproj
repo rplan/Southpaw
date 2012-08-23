@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{831A880D-6A78-4E9B-BC0A-69E37B09CA2A}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <NoStdLib>True</NoStdLib>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
+    <LangVersion>ISO-2</LangVersion>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Southpaw.Runtime.Clientside</RootNamespace>
+    <AssemblyName>Southpaw.Runtime.Clientside</AssemblyName>
+    <!--<TemplateFile>Properties\Southpaw.script</TemplateFile>-->
+    <!--<CodeAnalysisRuleSet>Properties\Southpaw.ruleset</CodeAnalysisRuleSet>-->
+    <!--<ReferencePath>$(ProgramFiles)\ScriptSharp\v1.0\Framework\</ReferencePath>-->
+    <DeploymentPath>
+    </DeploymentPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;CODE_ANALYSIS;SCRIPTSHARP</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn>0028, 1591, 1684</NoWarn>
+    <DocumentationFile>bin\Debug\Southpaw.Runtime.Clientside.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>CODE_ANALYSIS;SCRIPTSHARP</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn>0028, 1591, 1684</NoWarn>
+    <DocumentationFile>bin\Release\Southpaw.Runtime.Clientside.xml</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Script.jQuery, Version=1.1.0.0, Culture=neutral, PublicKeyToken=8fc0e3af5abcb6c4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\code\thirdparty\SaltarelleCompiler\Runtime\bin\Script.jQuery.dll</HintPath>
+    </Reference>
+    <Reference Include="Script.Web, Version=1.1.0.0, Culture=neutral, PublicKeyToken=8fc0e3af5abcb6c4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\code\thirdparty\SaltarelleCompiler\Runtime\bin\Script.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="Script.Linq">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\code\thirdparty\SaltarelleCompiler\Runtime\bin\Script.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\code\thirdparty\SaltarelleCompiler\Runtime\bin\mscorlib.dll</HintPath>
+    </Reference>
+    <!--
+    <Reference Include="mscorlib">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\code\thirdparty\SaltarelleCompiler\Runtime\bin\mscorlib.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib, Version=0.7.0.0, Culture=neutral, PublicKeyToken=8fc0e3af5abcb6c4, processorArchitecture=MSIL" />
+    <Reference Include="Script.jQuery, Version=0.7.0.0, Culture=neutral, PublicKeyToken=8fc0e3af5abcb6c4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\scriptsharp\Script.jQuery.dll</HintPath>
+    </Reference>
+    <Reference Include="Script.Web" />
+    -->
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="EventUtils.cs" />
+    <Compile Include="IEvents.cs" />
+    <Compile Include="Router.cs" />
+    <Compile Include="Service.cs" />
+    <Compile Include="View.cs" />
+    <Compile Include="ViewModel.cs" />
+    <Compile Include="ViewModelCollection.cs" />
+    <Compile Include="ViewOptions.cs" />
+    <Compile Include="ViewSetOptions.cs" />
+    <Content Include="Properties\Southpaw.ruleset" />
+    <Content Include="Properties\Southpaw.script" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Content Include="Southpaw.Runtime.Base.js" />
+  </ItemGroup>
+  <ItemGroup />
+  <!--<Import Project="$(ProgramFiles)\ScriptSharp\v1.0\ScriptSharp.targets" />-->
+  <Import Project="C:\code\thirdparty\SaltarelleCompiler\bin\Saltarelle.Compiler.targets" />
+  <PropertyGroup>
+      <PostBuildEvent Condition="'$(Configuration)' == 'Release'">
+          copy /Y $(ProjectDir)\Southpaw.Runtime.Base.js $(SolutionDir)\output\Southpaw.Runtime.Base.js
+          copy /Y $(TargetDir)\Southpaw.Runtime.Clientside.js $(SolutionDir)\output\Southpaw.Runtime.Clientside.js
+      </PostBuildEvent>
+  </PropertyGroup>
+</Project>
