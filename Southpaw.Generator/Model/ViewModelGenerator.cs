@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
 using Southpaw.Generator.Controller;
+using Southpaw.Runtime.Serverside;
 
 namespace Southpaw.Generator.Model
 {

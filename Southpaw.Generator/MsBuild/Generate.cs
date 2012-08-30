@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Xml.Linq;
-using Microsoft.Build.BuildEngine;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Southpaw.Generator.Controller;
@@ -14,17 +12,17 @@ using Project = Microsoft.Build.Evaluation.Project;
 namespace Southpaw.Generator.MsBuild
 {
     [Serializable]
-    public class Generate : Task
+    public class Generate : AppDomainIsolatedTask
     {
         [Required]
-        public string BusinessObjectProjectFile
+        public string BusinessObjectAssemblyPath
         {
             get;
             set;
         }
 
         [Required]
-        public string ControllerProjectFile
+        public string ControllerAssemblyPath
         {
             get;
             set;
@@ -56,12 +54,14 @@ namespace Southpaw.Generator.MsBuild
             get;
             set;
         }
+
         [Required]
         public string ControllerNamespaceSubstitutionDestination
         {
             get;
             set;
         }
+
 
         public override bool Execute()
         {
@@ -71,8 +71,8 @@ namespace Southpaw.Generator.MsBuild
             //XNamespace xns = "http://schemas.microsoft.com/developer/msbuild/2003";
             //XDocument xmldoc = XDocument.Load(BusinessObjectProjectFile);
             OutputProjectFile = Path.GetFullPath(OutputProjectFile);
-            BusinessObjectProjectFile = Path.GetFullPath(BusinessObjectProjectFile);
-            ControllerProjectFile = Path.GetFullPath(ControllerProjectFile);
+            BusinessObjectAssemblyPath = Path.GetFullPath(BusinessObjectAssemblyPath);
+            ControllerAssemblyPath = Path.GetFullPath(ControllerAssemblyPath);
 
             var currentProjects = Microsoft.Build.Evaluation.ProjectCollection.GlobalProjectCollection;
             var outputProject = currentProjects.GetLoadedProjects(OutputProjectFile).FirstOrDefault();
@@ -81,23 +81,10 @@ namespace Southpaw.Generator.MsBuild
                 outputProject = new Microsoft.Build.Evaluation.Project(OutputProjectFile);
                 outputProject.FullPath = OutputProjectFile;
             }
-            var businessLibraryProject = currentProjects.GetLoadedProjects(BusinessObjectProjectFile).FirstOrDefault();
-            if (businessLibraryProject == null)
-            {
-                businessLibraryProject = new Microsoft.Build.Evaluation.Project(BusinessObjectProjectFile);
-                businessLibraryProject.FullPath = BusinessObjectProjectFile;
-            }
-            var controllersProject = currentProjects.GetLoadedProjects(ControllerProjectFile).FirstOrDefault();
-            if (controllersProject == null)
-            {
-                controllersProject = new Microsoft.Build.Evaluation.Project(ControllerProjectFile);
-                controllersProject.FullPath = ControllerProjectFile;
-            }
 
             if (!AddToProject(
-                businessLibraryProject,
-                outputProject, 
-                BusinessObjectProjectFile, 
+                outputProject,
+                BusinessObjectAssemblyPath,
                 OutputProjectFile, 
                 BusinessObjectNamespaceSubstitutionSource, 
                 BusinessObjectNamespaceSubstitutionDestination,
@@ -106,9 +93,8 @@ namespace Southpaw.Generator.MsBuild
                 ))
                 return false;
             if (!AddToProject(
-                controllersProject, 
                 outputProject, 
-                ControllerProjectFile, 
+                ControllerAssemblyPath, 
                 OutputProjectFile, 
                 ControllerNamespaceSubstitutionSource, 
                 ControllerNamespaceSubstitutionDestination,
@@ -189,38 +175,17 @@ namespace Southpaw.Generator.MsBuild
         }
 
         private bool AddToProject(
-            Microsoft.Build.Evaluation.Project inputProject,
             Microsoft.Build.Evaluation.Project outputProject, 
-            string inputProjectFilename,
+            string inputAssemblyPath,
             string outputProjectFilename,
             string namespaceSubstitutionSource,
             string namespaceSubstitutionDestination,
             Func<IGenerator> getGenerator)
         {
-            Log.LogMessage("Generating classes for input project " + inputProjectFilename);
-            var assemblyNameNode = inputProject.AllEvaluatedProperties.FirstOrDefault(p => p.Name == "AssemblyName");
-            //var assemblyNameNode = xmldoc.Descendants(xns + "AssemblyName").FirstOrDefault();
-            if (assemblyNameNode == null)
+            Log.LogMessage("Generating classes for input " + inputAssemblyPath);
+            if (!File.Exists(inputAssemblyPath))
             {
-                Log.LogError("No assembly name found in Business Object project (" + inputProjectFilename + ")");
-                return false;
-            }
-            var assemblyName = assemblyNameNode.EvaluatedValue;
-
-            // -> get output path
-            var outputPathProperty = inputProject.AllEvaluatedProperties.FirstOrDefault(p => p.Name == "OutputPath");
-            if (outputPathProperty == null || outputPathProperty.EvaluatedValue == "")
-            {
-                Log.LogError("No output path found in Business Object project (" + inputProjectFilename + ")");
-                return false;
-            }
-            Log.LogMessage("Output path:" + outputPathProperty.EvaluatedValue);
-            var output = outputPathProperty.EvaluatedValue;
-            var folder = Path.GetDirectoryName(inputProjectFilename);
-            var assemblyFullPath = Path.Combine(folder, output, assemblyName + ".dll");
-            if (!File.Exists(assemblyFullPath))
-            {
-                Log.LogError("Input assembly not found in derived output path '" + assemblyFullPath + "'");
+                Log.LogError("Input assembly not found in '" + inputAssemblyPath + "'");
                 return false;
             }
             //Log.LogMessage("Found input assembly " + assemblyFullPath);
@@ -237,19 +202,20 @@ namespace Southpaw.Generator.MsBuild
             AppDomain newAppDomain = AppDomain.CreateDomain("newAppDomain", null, new AppDomainSetup { 
                 ApplicationName = "test app name", 
                 //ApplicationBase = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-                ApplicationBase = Path.GetDirectoryName(assemblyFullPath)
+                ApplicationBase = Path.GetDirectoryName(inputAssemblyPath)
                 //PrivateBinPath = 
             });
             var proxyDomain = new ProxyDomain
                                   {
-                                      AssemblyFullPath = assemblyFullPath,
+                                      AssemblyFullPath = inputAssemblyPath,
                                       ModelsOutputFolder = modelsOutputFolder,
-                                      OutputProject = outputProject,
+                                      OutputProject= outputProject,
                                       ViewModelGenerator = viewModelGenerator
                                   };
             try
             {
-                newAppDomain.DoCallBack(proxyDomain.DoStuff);
+                //newAppDomain.DoCallBack(proxyDomain.DoStuff);
+                proxyDomain.DoStuff();
                 //DoGeneration();
                 //var businessObjectsOutputFolder = Path.Combine(Path.GetDirectoryName(OutputProjectFile), "ViewModels");
                 if (proxyDomain.Errors != null && proxyDomain.Errors.Count > 0)
@@ -272,14 +238,14 @@ namespace Southpaw.Generator.MsBuild
 
         private bool ValidateInput()
         {
-            if (!File.Exists(BusinessObjectProjectFile))
+            if (!File.Exists(BusinessObjectAssemblyPath))
             {
-                Log.LogError("The Business Object project file ('" + BusinessObjectProjectFile + "') does not exist!");
+                Log.LogError("The Business Object assembly file ('" + BusinessObjectAssemblyPath + "') does not exist!");
                 return false;
             }
-            if (!File.Exists(ControllerProjectFile))
+            if (!File.Exists(ControllerAssemblyPath))
             {
-                Log.LogError("The Controller project file ('" + ControllerProjectFile + "') does not exist!");
+                Log.LogError("The Controller assembly file ('" + ControllerAssemblyPath + "') does not exist!");
                 return false;
             }
             if (!File.Exists(OutputProjectFile))

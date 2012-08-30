@@ -49,7 +49,6 @@
     <Compile Include="Controller\InvalidServiceTypeException.cs" />
     <Compile Include="Controller\ServiceGenerator.cs" />
     <Compile Include="Controller\ServiceGeneratorOptions.cs" />
-    <Compile Include="Model\Attributes.cs" />
     <Compile Include="Model\OutputWriter.cs" />
     <Compile Include="Model\Utils.cs" />
     <Compile Include="MsBuild\Generate.cs" />

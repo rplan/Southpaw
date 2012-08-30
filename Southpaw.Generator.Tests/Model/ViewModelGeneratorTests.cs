@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using Southpaw.Generator.Model;
+using Southpaw.Runtime.Serverside;
 
 namespace Southpaw.Generator.Tests
 {

@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Linq;
 
-namespace Southpaw.Generator
+namespace Southpaw.Runtime.Serverside
 {
     public class HasViewModelAttribute : Attribute
     {
