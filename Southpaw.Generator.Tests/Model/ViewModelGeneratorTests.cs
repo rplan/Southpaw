@@ -227,7 +227,7 @@ namespace Southpaw.Generator.Tests
     }
 }";
             Console.Write(actual);
-            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(expected.Trim(), actual.Trim());
         }
 
         [Test]
@@ -260,7 +260,7 @@ namespace Southpaw.Generator.Tests
     }
 }";
             Console.Write(actual);
-            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(expected.Trim(), actual.Trim());
         }
         
         
@@ -294,7 +294,7 @@ namespace Southpaw.Generator.Tests
     }
 }";
             Console.Write(actual);
-            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(expected.Trim(), actual.Trim());
         }
 
         [Test]
@@ -338,7 +338,7 @@ namespace Southpaw.Generator.Tests
     }
 }";
             Console.Write(actual);
-            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(expected.Trim(), actual.Trim());
         }
 
         [Test]
@@ -373,7 +373,7 @@ namespace Southpaw.Generator.Tests
             set { SetProperty(""Prop2"", value); }
         }
 
-        public bool SetFromJSON(Dictionary<string, object> json, ViewSetOptions options)
+        public bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
         {
             if (json == null)
                 return true;
@@ -387,7 +387,7 @@ namespace Southpaw.Generator.Tests
     }
 }";
             Console.Write(actual);
-            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(expected.Trim(), actual.Trim());
         }
 
         [Test]
@@ -399,7 +399,7 @@ namespace Southpaw.Generator.Tests
 {
     public class ModelWithIgnoredPropertyViewModelBase : ViewModel
     {
-        public bool SetFromJSON(Dictionary<string, object> json, ViewSetOptions options)
+        public bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
         {
             if (json == null)
                 return true;
@@ -408,7 +408,7 @@ namespace Southpaw.Generator.Tests
     }
 }";
             Console.Write(actual);
-            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(expected.Trim(), actual.Trim());
         }
 
         [Test]
@@ -426,7 +426,7 @@ namespace Southpaw.Generator.Tests
             set { SetProperty(""Prop"", value); }
         }
 
-        public bool SetFromJSON(Dictionary<string, object> json, ViewSetOptions options)
+        public bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
         {
             if (json == null)
                 return true;
@@ -435,7 +435,7 @@ namespace Southpaw.Generator.Tests
     }
 }";
             Console.Write(actual);
-            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(expected.Trim(), actual.Trim());
         }
 
         [Test]
@@ -453,7 +453,7 @@ namespace Southpaw.Generator.Tests
             set { SetProperty(""Prop"", value); }
         }
 
-        public bool SetFromJSON(Dictionary<string, object> json, ViewSetOptions options)
+        public bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
         {
             if (json == null)
                 return true;
@@ -463,7 +463,7 @@ namespace Southpaw.Generator.Tests
                 if (this.Prop != null)
                     l = this.Prop;
 
-                foreach(Dictionary<string, object> itemJson in (List<Dictionary<string, object>>)json[""Prop""])
+                foreach(JsDictionary<string, object> itemJson in (List<JsDictionary<string, object>>)json[""Prop""])
                 {
                     Southpaw.Output.Tests.ModelWithDateTimePropertyViewModel x = new Southpaw.Output.Tests.ModelWithDateTimePropertyViewModel();
                     if (!x.SetFromJSON(itemJson, options))
@@ -477,7 +477,7 @@ namespace Southpaw.Generator.Tests
     }
 }";
             Console.Write(actual);
-            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(expected.Trim(), actual.Trim());
         }
         
         [Test]
@@ -495,7 +495,7 @@ namespace Southpaw.Generator.Tests
             set { SetProperty(""Prop"", value); }
         }
 
-        public bool SetFromJSON(Dictionary<string, object> json, ViewSetOptions options)
+        public bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
         {
             if (json == null)
                 return true;
@@ -504,7 +504,7 @@ namespace Southpaw.Generator.Tests
     }
 }";
             Console.Write(actual);
-            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(expected.Trim(), actual.Trim());
         }
 
         [Test]

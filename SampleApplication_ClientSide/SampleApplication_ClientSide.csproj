@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{6A3BD2C7-564F-4184-91E3-984987956CD5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SampleApplication_ClientSide</RootNamespace>
+    <AssemblyName>SampleApplication_ClientSide</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+    <NoStdLib>True</NoStdLib>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Script.jQuery, Version=1.1.0.0, Culture=neutral, PublicKeyToken=8fc0e3af5abcb6c4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\Saltarelle\Script.jQuery.dll</HintPath>
+    </Reference>
+    <Reference Include="Script.Web, Version=1.1.0.0, Culture=neutral, PublicKeyToken=8fc0e3af5abcb6c4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\Saltarelle\Script.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="Script.Linq">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\Saltarelle\Script.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\Saltarelle\mscorlib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Southpaw.Runtime.Clientside\Southpaw.Runtime.Clientside.csproj">
+      <Project>{831a880d-6a78-4e9b-bc0a-69e37b09ca2a}</Project>
+      <Name>Southpaw.Runtime.Clientside</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Generated\Services\BaseClasses.cs" />
+    <Compile Include="Generated\ViewModels\BaseClasses.cs" />
+    <Compile Include="Services\\BlogController_IndexService.cs" />
+    <Compile Include="Services\\BlogController_ShowService.cs" />
+    <Compile Include="Services\\PostController_ShowService.cs" />
+    <Compile Include="Tests\JsonSerializationTests.cs" />
+    <Compile Include="TestView.cs" />
+    <Compile Include="ViewModels\\BlogViewModelBase.cs" />
+    <Compile Include="ViewModels\\PostViewModelBase.cs" />
+    <Compile Include="ViewModels\\UserViewModelBase.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Tests\lib\qunit-1.9.0.css" />
+    <Content Include="Tests\lib\qunit-1.9.0.js" />
+    <Content Include="Tests\runner.html" />
+    <Content Include="Tests\runner.js" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <Import Project="$(ProjectDir)..\lib\Saltarelle\Compiler\Saltarelle.Compiler.targets" />
+  <UsingTask AssemblyFile="$(ProjectDir)..\output\bin\$(Configuration)\Southpaw.Generator.dll" TaskName="Southpaw.Generator.MsBuild.Generate" Condition="'$(CompileClientSide)' != ''" />
+  <!--<Target Name="AfterBuild">-->
+  <Target Name="BeforeBuild">
+    <Message Text="'$(CompileClientSide)'" />
+    <Message Text="'$(CompileClientSide)' != ''" />
+    <Generate BusinessObjectAssemblyPath="$(ProjectDir)..\SampleApplication_ServerSide\bin\$(Configuration)\SampleApplication_ServerSide.dll" ControllerAssemblyPath="$(ProjectDir)..\SampleApplication_ServerSide\bin\$(Configuration)\SampleApplication_ServerSide.dll" OutputProjectFile="$(ProjectDir)SampleApplication_ClientSide.csproj" BusinessObjectNamespaceSubstitutionSource="SampleApplication_ServerSide" BusinessObjectNamespaceSubstitutionDestination="SampleApplication_ClientSide" ControllerNamespaceSubstitutionSource="SampleApplication_ServerSide" ControllerNamespaceSubstitutionDestination="SampleApplication_ClientSide" Condition="'$(CompileClientSide)' != ''" />
+  </Target>
+  <PropertyGroup>
+    <PostBuildEvent>
+copy "$(ProjectDir)..\output\bin\$(Configuration)\*.js" "$(ProjectDir)\bin\$(Configuration)"
+copy "$(ProjectDir)..\Southpaw.Runtime.ClientSide\*.js" "$(ProjectDir)\bin\$(Configuration)"
+copy "$(ProjectDir)..\lib\Saltarelle\*.js" "$(ProjectDir)\bin\$(Configuration)"</PostBuildEvent>
+  </PropertyGroup>
+</Project>

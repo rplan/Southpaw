@@ -50,6 +50,7 @@ namespace Southpaw.Generator.Model
         {
             StringBuilder baseClassesContent = new StringBuilder(@"using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Southpaw.Runtime.Clientside;
 
 ");
@@ -278,12 +279,17 @@ using Southpaw.Runtime.Clientside;
                     continue;
 
                 var propertyTypeName = GetPropertyTypeNameForMethodSignature(p.PropertyType);
+                var jsPropertyName = GetJsPropertyName(p.Name);
                 outputWriter.Write("public ").Write(propertyTypeName).Write(" ").Write(p.Name)
                     .EndLine()
                     .Write("{").EndLine()
                     .Indent()
-                    .Write("get { return (").Write(propertyTypeName).Write(")GetProperty(\"").Write(p.Name).Write("\"); }").EndLine()
-                    .Write("set { SetProperty(\"").Write(p.Name).Write("\", value); }").EndLine()
+                    .Write("[InlineCode(\"{this}.get('").Write(jsPropertyName).Write("')\")]").EndLine()
+                    //.Write("get { return ").Write("GetProperty<").Write(propertyTypeName).Write(">(\"").Write(jsPropertyName).Write("\"); }").EndLine()
+                    .Write("get { return default(").Write(propertyTypeName).Write("); }").EndLine()
+                    .Write("[InlineCode(\"{this}.set({{'").Write(jsPropertyName).Write("': {value}}})\")]").EndLine()
+                    //.Write("set { SetProperty(\"").Write(jsPropertyName).Write("\", value); }").EndLine()
+                    .Write("set { }").EndLine()
                     .Unindent()
                     .Write("}").EndLine();
                 outputWriter.EndLine();
@@ -314,7 +320,8 @@ using Southpaw.Runtime.Clientside;
                     if (!ShouldHaveSpecialSetOverride(p))
                         continue;
 
-                    outputWriter.Write("if (json.ContainsKey(\"").Write(p.Name).Write("\"))").EndLine()
+                    var jsPropertyName = GetJsPropertyName(p.Name);
+                    outputWriter.Write("if (json.ContainsKey(\"").Write(jsPropertyName).Write("\"))").EndLine()
                         .Write("{").EndLine()
                         .Indent();
                     if (IsViewModelType(p.PropertyType))
@@ -323,9 +330,9 @@ using Southpaw.Runtime.Clientside;
                         outputWriter.Write("if (this.").Write(p.Name).Write(" != null)").EndLine()
                             .Write("{").EndLine()
                             .Indent()
-                            .Write("if (this.").Write(p.Name).Write(".SetFromJSON((JsDictionary<string, object>)json[\"").Write(p.Name).Write("\"], options))").EndLine()
+                            .Write("if (this.").Write(p.Name).Write(".SetFromJSON((JsDictionary<string, object>)json[\"").Write(jsPropertyName).Write("\"], options))").EndLine()
                             .Indent()
-                            .Write("json.Remove(\"").Write(p.Name).Write("\");").EndLine()
+                            .Write("json.Remove(\"").Write(jsPropertyName).Write("\");").EndLine()
                             .Unindent()
                             .Write("else").EndLine()
                             .Indent()
@@ -337,11 +344,11 @@ using Southpaw.Runtime.Clientside;
                             .Write("{").EndLine()
                             .Indent()
                             .Write(GetPropertyTypeNameForMethodSignature(p.PropertyType)).Write(" x = new ").Write(GetPropertyTypeNameForMethodSignature(p.PropertyType)).Write("();").EndLine()
-                            .Write("if (!x.SetFromJSON((JsDictionary<string, object>)json[\"").Write(p.Name).Write("\"], options))").EndLine()
+                            .Write("if (!x.SetFromJSON((JsDictionary<string, object>)json[\"").Write(jsPropertyName).Write("\"], options))").EndLine()
                             .Indent()
                             .Write("return false;").EndLine()
                             .Unindent()
-                            .Write("json[\"").Write(p.Name).Write("\"] = x;").EndLine()
+                            .Write("json[\"").Write(jsPropertyName).Write("\"] = x;").EndLine()
                             //.Write("this.").Write(p.Name).Write(" = x;").EndLine()
                             .Unindent()
                             .Write("}").EndLine();
@@ -356,7 +363,7 @@ using Southpaw.Runtime.Clientside;
                             .Write("l = this.").Write(p.Name).Write(";").EndLine()
                             .Unindent()
                             .EndLine()
-                            .Write("foreach(JsDictionary<string, object> itemJson in (List<JsDictionary<string, object>>)json[\"").Write(p.Name).Write("\"])").EndLine()
+                            .Write("foreach(JsDictionary<string, object> itemJson in (List<JsDictionary<string, object>>)json[\"").Write(jsPropertyName).Write("\"])").EndLine()
                             .Write("{").EndLine()
                             .Indent()
                             .Write(GetPropertyTypeNameForMethodSignature(p.PropertyType.GetGenericArguments()[0])).Write(" x = new ").Write(GetPropertyTypeNameForMethodSignature(p.PropertyType.GetGenericArguments()[0])).Write("();").EndLine()
@@ -387,11 +394,12 @@ using Southpaw.Runtime.Clientside;
 
                 if (IsPrimitiveOrNullableProperty(p.PropertyType))
                 {
+                    var jsPropertyName = GetJsPropertyName(p.Name);
                     outputWriter.Write("public void Set").Write(p.Name).Write("FromString(string value)")
                         .EndLine()
                         .Write("{").EndLine()
                         .Indent()
-                        .Write("SetPropertyFromString(\"").Write(p.Name).Write("\", value, typeof(").Write(GetPropertyTypeNameForJsTypeConversion(p.PropertyType)).Write("), ").Write(p.PropertyType.Name == "Nullable`1" ? "true" : "false").Write(");").EndLine()
+                        .Write("SetPropertyFromString(\"").Write(jsPropertyName).Write("\", value, typeof(").Write(GetPropertyTypeNameForJsTypeConversion(p.PropertyType)).Write("), ").Write(p.PropertyType.Name == "Nullable`1" ? "true" : "false").Write(");").EndLine()
                         .Unindent()
                         .Write("}").EndLine();
                     outputWriter.EndLine();
@@ -410,6 +418,11 @@ using Southpaw.Runtime.Clientside;
                 .Write("}").EndLine().EndLine();
 
             return outputWriter.ToString();
+        }
+
+        private string GetJsPropertyName(string p)
+        {
+            return p[0].ToString().ToLower() + p.Substring(1);
         }
 
         #region helper methods

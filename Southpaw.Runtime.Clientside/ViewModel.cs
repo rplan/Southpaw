@@ -23,13 +23,17 @@ namespace Southpaw.Runtime.Clientside
             set; 
         }
 
-        protected void SetProperty(string propertyName, object value)
+        [InlineCode("this.set({{ {propertyName}: {value} }})")]
+        [IgnoreGenericArguments]
+        protected void SetProperty<T>(string propertyName, T value)
         {
         }
 
-        protected object GetProperty(string propertyName)
+        [InlineCode("this.get({propertyName})")]
+        [IgnoreGenericArguments]
+        protected T GetProperty<T>(string propertyName)
         {
-            return null;
+            return default(T);
         }
 
         protected void SetPropertyFromString(string propertyName, string value, Type propertyType, bool isNullable)
@@ -82,7 +86,7 @@ namespace Southpaw.Runtime.Clientside
         {
         }
 
-        public Dictionary<string, object> ToJSON()
+        public JsDictionary<string, object> ToJSON()
         { 
             return null;
         }

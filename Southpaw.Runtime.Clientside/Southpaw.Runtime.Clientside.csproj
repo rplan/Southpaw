@@ -33,7 +33,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>pdbonly</DebugType>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\Output\bin\Release\</OutputPath>
     <DefineConstants>CODE_ANALYSIS;SCRIPTSHARP</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -89,9 +89,13 @@
   <!--<Import Project="$(ProgramFiles)\ScriptSharp\v1.0\ScriptSharp.targets" />-->
   <Import Project="C:\code\thirdparty\SaltarelleCompiler\bin\Saltarelle.Compiler.targets" />
   <PropertyGroup>
-      <PostBuildEvent Condition="'$(Configuration)' == 'Release'">
-          copy /Y $(ProjectDir)\Southpaw.Runtime.Base.js $(SolutionDir)\output\Southpaw.Runtime.Base.js
-          copy /Y $(TargetDir)\Southpaw.Runtime.Clientside.js $(SolutionDir)\output\Southpaw.Runtime.Clientside.js
+    <PostBuildEvent Condition="'$(Configuration)' == 'Release'">
+          copy /Y $(ProjectDir)Southpaw.Runtime.Base.js $(ProjectDir)..\output\Southpaw.Runtime.Base.js
       </PostBuildEvent>
+    <!--
+          copy /Y $(ProjectDir)bin\$(Configuration)\Southpaw.Runtime.Clientside.js $(ProjectDir)..\output\Southpaw.Runtime.Clientside.js -->
+  </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>copy $(ProjectDir)..\lib\underscore\underscore.js $(ProjectDir)..\output\bin\$(Configuration)</PostBuildEvent>
   </PropertyGroup>
 </Project>
