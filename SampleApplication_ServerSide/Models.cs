@@ -26,6 +26,12 @@ namespace SampleApplication_ServerSide
     }
 
     [HasViewModel()]
+    public class AdminUser : User
+    {
+        public int Permission { get; set; } 
+    }
+
+    [HasViewModel()]
     public class Post
     {
         public int Id { get; set; }

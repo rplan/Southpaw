@@ -65,6 +65,7 @@
     <Compile Include="Services\\BlogController_ShowService.cs" />
     <Compile Include="Services\\PostController_ShowService.cs" />
     <Compile Include="TestView.cs" />
+    <Compile Include="ViewModels\\AdminUserViewModelBase.cs" />
     <Compile Include="ViewModels\\BlogViewModelBase.cs" />
     <Compile Include="ViewModels\\PostViewModelBase.cs" />
     <Compile Include="ViewModels\\UserViewModelBase.cs" />

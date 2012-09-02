@@ -256,7 +256,8 @@ using Southpaw.Runtime.Clientside;
                 .Indent()
                 .Write("public class ").Write(GetViewModelBaseTypeName(type.Name));
 
-            if (type.BaseType != typeof(Object))
+            var isInheritsFromOtherViewModel = type.BaseType != typeof (Object);
+            if (isInheritsFromOtherViewModel)
             {
                 // assume this has already been validated 
                 outputWriter.Write(" : ").Write(Utils.GetNamespace(type.BaseType.Namespace, _options.NamespaceSubstitution)).Write(".").Write(Utils.GetViewModelTypeName(type.BaseType.Name));
@@ -391,7 +392,12 @@ using Southpaw.Runtime.Clientside;
                         .Unindent()
                         .Write("}").EndLine();
                 }
-                outputWriter.Write("return base.Set(json, options);").EndLine()
+                if (isInheritsFromOtherViewModel)
+                    outputWriter.Write("return base.SetFromJSON(json, options);").EndLine();
+                else
+                    outputWriter.Write("return base.Set(json, options);").EndLine();
+
+                outputWriter
                         .Unindent()
                         .Write("}").EndLine();
             }

@@ -142,6 +142,32 @@ namespace SampleApplication_ClientSide
 
 namespace SampleApplication_ClientSide
 {
+    public class AdminUserViewModelBase : SampleApplication_ClientSide.UserViewModel
+    {
+        public int Permission
+        {
+            [InlineCode("{this}.get('permission')")]
+            get { return default(int); }
+            [InlineCode("{this}.set({{'permission': {value}}})")]
+            set { }
+        }
+
+        public bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
+        {
+            if (json == null)
+                return true;
+            return base.SetFromJSON(json, options);
+        }
+        public void SetPermissionFromString(string value)
+        {
+            SetPropertyFromString("permission", value, typeof(int), false);
+        }
+
+    }
+}
+
+namespace SampleApplication_ClientSide
+{
     public class PostViewModelBase : ViewModel<System.Int32>
     {
         public SampleApplication_ClientSide.UserViewModel Author

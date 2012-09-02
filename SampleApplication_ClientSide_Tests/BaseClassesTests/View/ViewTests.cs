@@ -35,7 +35,7 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
         }
     }
 
-    public class SimpleModel : ViewModel
+    public class SimpleModel : ViewModel<int>
     {
         
     }
