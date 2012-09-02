@@ -6,11 +6,10 @@ using jQueryApi;
 namespace Southpaw.Runtime.Clientside
 {
     [Imported(IsRealType = true)]
-    public abstract class ViewModel : IEvents
+    public abstract class ViewModel<TPrimaryKey> : IEvents
     {
         [IntrinsicProperty]
-        // TODO: scriptsharp doesn't seem to like this being a generic
-        public int Id
+        public TPrimaryKey Id
         {
             get;
             set;

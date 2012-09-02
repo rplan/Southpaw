@@ -5,16 +5,8 @@ using Southpaw.Runtime.Clientside;
 
 namespace SampleApplication_ClientSide
 {
-    public class BlogViewModelBase : ViewModel
+    public class BlogViewModelBase : ViewModel<System.Int32>
     {
-        public int Id
-        {
-            [InlineCode("{this}.get('id')")]
-            get { return default(int); }
-            [InlineCode("{this}.set({{'id': {value}}})")]
-            set { }
-        }
-
         public string Name
         {
             [InlineCode("{this}.get('name')")]
@@ -93,16 +85,8 @@ namespace SampleApplication_ClientSide
 
 namespace SampleApplication_ClientSide
 {
-    public class UserViewModelBase : ViewModel
+    public class UserViewModelBase : ViewModel<System.Int32>
     {
-        public int Id
-        {
-            [InlineCode("{this}.get('id')")]
-            get { return default(int); }
-            [InlineCode("{this}.set({{'id': {value}}})")]
-            set { }
-        }
-
         public string Email
         {
             [InlineCode("{this}.get('email')")]
@@ -158,16 +142,8 @@ namespace SampleApplication_ClientSide
 
 namespace SampleApplication_ClientSide
 {
-    public class PostViewModelBase : ViewModel
+    public class PostViewModelBase : ViewModel<System.Int32>
     {
-        public int Id
-        {
-            [InlineCode("{this}.get('id')")]
-            get { return default(int); }
-            [InlineCode("{this}.set({{'id': {value}}})")]
-            set { }
-        }
-
         public SampleApplication_ClientSide.UserViewModel Author
         {
             [InlineCode("{this}.get('author')")]

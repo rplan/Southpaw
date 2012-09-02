@@ -264,7 +264,13 @@ using Southpaw.Runtime.Clientside;
             }
             else
             {
-                outputWriter.Write(" : ViewModel");
+                var idProperty =
+                    type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).
+                        FirstOrDefault(p => p.Name == "Id");
+                var idPropertyType = typeof (int);
+                if (idProperty != null)
+                    idPropertyType = idProperty.PropertyType;
+                outputWriter.Write(" : ViewModel<").Write(idPropertyType.FullName).Write(">");
             }
 
             outputWriter
@@ -276,6 +282,9 @@ using Southpaw.Runtime.Clientside;
             foreach(var p in type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
             {
                 if (p.GetCustomAttributes(typeof(ViewModelIgnoreAttribute), true).Any())
+                    continue;
+
+                if (p.Name == "Id")
                     continue;
 
                 var propertyTypeName = GetPropertyTypeNameForMethodSignature(p.PropertyType);
