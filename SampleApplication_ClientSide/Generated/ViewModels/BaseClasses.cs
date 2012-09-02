@@ -49,6 +49,7 @@ namespace SampleApplication_ClientSide
                 if (this.Posts != null)
                     l = this.Posts;
 
+                l.Clear();
                 foreach(JsDictionary<string, object> itemJson in (List<JsDictionary<string, object>>)json["posts"])
                 {
                     SampleApplication_ClientSide.PostViewModel x = new SampleApplication_ClientSide.PostViewModel();
@@ -56,7 +57,7 @@ namespace SampleApplication_ClientSide
                         return false;
                     l.Add(x);
                 }
-                json["Posts"] = l;
+                json["posts"] = l;
             }
             if (json.ContainsKey("owner"))
             {

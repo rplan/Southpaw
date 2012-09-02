@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6A3BD2C7-564F-4184-91E3-984987956CD5}</ProjectGuid>
+    <ProjectGuid>{32D16BA2-3664-4085-A376-B07EDDF1B003}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SampleApplication_ClientSide</RootNamespace>
-    <AssemblyName>SampleApplication_ClientSide</AssemblyName>
+    <RootNamespace>SampleApplication_ClientSide_Tests</RootNamespace>
+    <AssemblyName>SampleApplication_ClientSide_Tests</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -50,24 +50,27 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseClassesTests\View\ViewTests.cs" />
+    <Compile Include="GeneratedClassesTests\ViewModel\JsonSerializationTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="lib\qunit-1.9.0.css" />
+    <Content Include="lib\qunit-1.9.0.js" />
+    <Content Include="runner.html" />
+    <Content Include="runner.js" />
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SampleApplication_ClientSide\SampleApplication_ClientSide.csproj">
+      <Project>{6a3bd2c7-564f-4184-91e3-984987956cd5}</Project>
+      <Name>SampleApplication_ClientSide</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Southpaw.Runtime.Clientside\Southpaw.Runtime.Clientside.csproj">
       <Project>{831a880d-6a78-4e9b-bc0a-69e37b09ca2a}</Project>
       <Name>Southpaw.Runtime.Clientside</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Generated\Services\BaseClasses.cs" />
-    <Compile Include="Generated\ViewModels\BaseClasses.cs" />
-    <Compile Include="Services\\BlogController_IndexService.cs" />
-    <Compile Include="Services\\BlogController_ShowService.cs" />
-    <Compile Include="Services\\PostController_ShowService.cs" />
-    <Compile Include="TestView.cs" />
-    <Compile Include="ViewModels\\BlogViewModelBase.cs" />
-    <Compile Include="ViewModels\\PostViewModelBase.cs" />
-    <Compile Include="ViewModels\\UserViewModelBase.cs" />
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
@@ -77,15 +80,11 @@
   </Target>
   -->
   <Import Project="$(ProjectDir)..\lib\Saltarelle\Compiler\Saltarelle.Compiler.targets" />
-  <UsingTask AssemblyFile="$(ProjectDir)..\output\bin\$(Configuration)\Southpaw.Generator.dll" TaskName="Southpaw.Generator.MsBuild.Generate" Condition="'$(CompileClientSide)' != ''" />
-  <!--<Target Name="AfterBuild">-->
-  <Target Name="BeforeBuild">
-    <Generate BusinessObjectAssemblyPath="$(ProjectDir)..\SampleApplication_ServerSide\bin\$(Configuration)\SampleApplication_ServerSide.dll" ControllerAssemblyPath="$(ProjectDir)..\SampleApplication_ServerSide\bin\$(Configuration)\SampleApplication_ServerSide.dll" OutputProjectFile="$(ProjectDir)SampleApplication_ClientSide.csproj" BusinessObjectNamespaceSubstitutionSource="SampleApplication_ServerSide" BusinessObjectNamespaceSubstitutionDestination="SampleApplication_ClientSide" ControllerNamespaceSubstitutionSource="SampleApplication_ServerSide" ControllerNamespaceSubstitutionDestination="SampleApplication_ClientSide" Condition="'$(CompileClientSide)' != ''" />
-  </Target>
   <PropertyGroup>
     <PostBuildEvent>
 copy "$(ProjectDir)..\output\bin\$(Configuration)\*.js" "$(ProjectDir)\bin\$(Configuration)"
 copy "$(ProjectDir)..\Southpaw.Runtime.ClientSide\*.js" "$(ProjectDir)\bin\$(Configuration)"
+copy "$(ProjectDir)..\SampleApplication_ClientSide\bin\$(Configuration)\*.js" "$(ProjectDir)\bin\$(Configuration)"
 copy "$(ProjectDir)..\lib\Saltarelle\*.js" "$(ProjectDir)\bin\$(Configuration)"</PostBuildEvent>
   </PropertyGroup>
 </Project>

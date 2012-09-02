@@ -363,6 +363,7 @@ using Southpaw.Runtime.Clientside;
                             .Write("l = this.").Write(p.Name).Write(";").EndLine()
                             .Unindent()
                             .EndLine()
+                            .Write("l.Clear();").EndLine()
                             .Write("foreach(JsDictionary<string, object> itemJson in (List<JsDictionary<string, object>>)json[\"").Write(jsPropertyName).Write("\"])").EndLine()
                             .Write("{").EndLine()
                             .Indent()
@@ -374,7 +375,7 @@ using Southpaw.Runtime.Clientside;
                             .Write("l.Add(x);").EndLine()
                             .Unindent()
                             .Write("}").EndLine()
-                            .Write("json[\"").Write(p.Name).Write("\"] = l;").EndLine();
+                            .Write("json[\"").Write(jsPropertyName).Write("\"] = l;").EndLine();
                     }
 
                     outputWriter

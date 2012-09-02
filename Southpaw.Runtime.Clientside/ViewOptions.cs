@@ -1,48 +1,23 @@
 using System.Html;
 using jQueryApi;
+using System.Runtime.CompilerServices;
 
 namespace Southpaw.Runtime.Clientside
 {
-    public class ViewOptions
+    //[IgnoreGenericArguments]
+    public class ViewOptions//<TModel>
     {
-        /* TODO: scriptsharp doesn't seem to support passing generic objects in as method arguments :-( 
+        //public TModel Model { get; set; }
+        public object Model { get; set; }
 
-        private TModel _model;
+        public Element Element { get; set; }
 
-        public TModel Model
+        public string ElementSelector
         {
-            get { return _model; }
-            set { _model = value; }
-        }
-         */
-        private object _model;
-
-        public object Model
-        {
-            get { return _model; }
-            set { _model = value; }
-        }
-
-        private Element _element;
-        public Element Element
-        {
-            get
+            set
             {
-                return _element;
+                Element = jQuery.Select(value)[0];
             }
-            private set
-            {
-                _element = value;
-            }
-        }
-        public void SetElement(Element element)
-        {
-            Element = element;
-        }
-
-        public void SetElementSelector(string elementSelector)
-        {
-            Element = jQuery.Select(elementSelector)[0];
         }
     }
 }

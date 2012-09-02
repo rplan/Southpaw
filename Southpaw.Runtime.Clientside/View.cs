@@ -1,15 +1,14 @@
-// Class1.cs
-//
-
 using System;
 using System.Collections.Generic;
 using System.Html;
 using System.Text.RegularExpressions;
 using jQueryApi;
+using System.Runtime.CompilerServices;
 
 namespace Southpaw.Runtime.Clientside
 {
-    public abstract class View : IEvents
+    //[IgnoreGenericArguments]
+    public abstract class View/*<TModel>*/ : IEvents
     {
         private static int UniqueViewIdCounter = 0;
         private Element _element;
@@ -19,14 +18,14 @@ namespace Southpaw.Runtime.Clientside
         private static Regex EventSplitter = new Regex("^(\\S+)\\s*(.*)$");
         private readonly EventUtils _eventUtils = new EventUtils();
 
-        public View(ViewOptions options)
+        public View(ViewOptions/*<TModel>*/ options)
         {
-            if (options == null)
-                return;
-            if (options.Element != null)
+            if (options != null && options.Element != null)
                 SetElement(options.Element); // TODO: maybe set when a pre-existing view is passed in, and attach a new element to the parent when that's the case?
             else
                 SetElement(Document.CreateElement("div"));
+            //if (options != null && options.Model != null)
+                //Model = options.Model;
             //options.SetElement((Element)null);
             RegisterEvents();
             DelegateEvents();
@@ -48,9 +47,11 @@ namespace Southpaw.Runtime.Clientside
             return Element;
         }
 
-        protected abstract void Render(jQueryEvent evt); 
+        protected abstract void Render(jQueryEvent evt);
 
-        public void Remove()
+        //protected TModel Model { get; set; }
+
+        public virtual void Remove()
         {
             JqElement.Remove();
         }
@@ -96,9 +97,10 @@ namespace Southpaw.Runtime.Clientside
             }
         }
 
-        public void SetElement(Element element)
+        private void SetElement(Element element)
         {
             Element = element;
+            _jqElement = null;
         }
 
         public void SetElementSelector(string elementSelector)

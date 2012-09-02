@@ -23,7 +23,7 @@ namespace Southpaw.Runtime.Clientside
             set; 
         }
 
-        [InlineCode("this.set({{ {propertyName}: {value} }})")]
+        [InlineCode("this.set({{{propertyName}: {value}}})")]
         [IgnoreGenericArguments]
         protected void SetProperty<T>(string propertyName, T value)
         {
