@@ -31,7 +31,7 @@ namespace SampleApplication_ClientSide
             set { }
         }
 
-        public bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
+        public virtual bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
         {
             if (json == null)
                 return true;
@@ -111,7 +111,7 @@ namespace SampleApplication_ClientSide
             set { }
         }
 
-        public bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
+        public virtual bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
         {
             if (json == null)
                 return true;
@@ -152,7 +152,7 @@ namespace SampleApplication_ClientSide
             set { }
         }
 
-        public bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
+        public override bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
         {
             if (json == null)
                 return true;
@@ -210,7 +210,7 @@ namespace SampleApplication_ClientSide
             set { }
         }
 
-        public bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
+        public virtual bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
         {
             if (json == null)
                 return true;

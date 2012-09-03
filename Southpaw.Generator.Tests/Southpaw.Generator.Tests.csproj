@@ -51,7 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Southpaw.Generator\Southpaw.Generator.csproj">
-      <Project>{539440AD-396B-49CE-A2DF-0023E9F49B6F}</Project>
+      <Project>{539440ad-396b-49ce-a2df-0023e9f49b6f}</Project>
       <Name>Southpaw.Generator</Name>
     </ProjectReference>
     <ProjectReference Include="..\Southpaw.Runtime.Serverside\Southpaw.Runtime.Serverside.csproj">

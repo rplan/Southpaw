@@ -6,13 +6,16 @@ using jQueryApi;
 namespace Southpaw.Runtime.Clientside
 {
     [Imported(IsRealType = true)]
+    [IgnoreGenericArguments]
+    [ScriptName("ViewModel$1")]
     public abstract class ViewModel<TPrimaryKey> : IEvents
     {
-        [IntrinsicProperty]
         public TPrimaryKey Id
         {
-            get;
-            set;
+            [InlineCode("{this}.get('id')")]
+            get { return default(TPrimaryKey); }
+            [InlineCode("{this}.set({{'id': {value}}})")]
+            set { }
         }
 
         [IntrinsicProperty]
@@ -22,13 +25,13 @@ namespace Southpaw.Runtime.Clientside
             set; 
         }
 
-        [InlineCode("this.set({{{propertyName}: {value}}})")]
+        [InlineCode("{this}.set({{{propertyName}: {value}}})")]
         [IgnoreGenericArguments]
         protected void SetProperty<T>(string propertyName, T value)
         {
         }
 
-        [InlineCode("this.get({propertyName})")]
+        [InlineCode("{this}.get({propertyName})")]
         [IgnoreGenericArguments]
         protected T GetProperty<T>(string propertyName)
         {

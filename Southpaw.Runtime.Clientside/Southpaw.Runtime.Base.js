@@ -44,13 +44,14 @@ Southpaw.Runtime.Clientside.EventUtils = function () {
     };
 };
 
-Southpaw.Runtime.Clientside.ViewModel = function () {
+Southpaw.Runtime.Clientside.ViewModel$1 = function () {
     this._eventUtils = new Southpaw.Runtime.Clientside.EventUtils();
     this.attrs = {};
     var _previousAttrs = {};
 };
+Southpaw.Runtime.Clientside.ViewModel$1.__typeName = 'ViewModel';
 
-Southpaw.Runtime.Clientside.ViewModel.prototype = {
+Southpaw.Runtime.Clientside.ViewModel$1.prototype = {
     get: function (propertyName) {
         return this.attrs[propertyName];
     },

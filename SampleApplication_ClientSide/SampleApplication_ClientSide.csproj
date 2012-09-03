@@ -85,8 +85,8 @@
   </Target>
   <PropertyGroup>
     <PostBuildEvent>
-copy "$(ProjectDir)..\output\bin\$(Configuration)\*.js" "$(ProjectDir)\bin\$(Configuration)"
-copy "$(ProjectDir)..\Southpaw.Runtime.ClientSide\*.js" "$(ProjectDir)\bin\$(Configuration)"
-copy "$(ProjectDir)..\lib\Saltarelle\*.js" "$(ProjectDir)\bin\$(Configuration)"</PostBuildEvent>
+        copy /Y "$(ProjectDir)..\output\bin\$(Configuration)\*.js" "$(ProjectDir)\bin\$(Configuration)"
+        copy /Y "$(ProjectDir)..\Southpaw.Runtime.ClientSide\*.js" "$(ProjectDir)\bin\$(Configuration)"
+        copy /Y "$(ProjectDir)..\lib\Saltarelle\*.js" "$(ProjectDir)\bin\$(Configuration)"</PostBuildEvent>
   </PropertyGroup>
 </Project>

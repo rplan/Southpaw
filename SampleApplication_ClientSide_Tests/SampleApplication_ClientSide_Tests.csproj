@@ -82,9 +82,9 @@
   <Import Project="$(ProjectDir)..\lib\Saltarelle\Compiler\Saltarelle.Compiler.targets" />
   <PropertyGroup>
     <PostBuildEvent>
-copy "$(ProjectDir)..\output\bin\$(Configuration)\*.js" "$(ProjectDir)\bin\$(Configuration)"
-copy "$(ProjectDir)..\Southpaw.Runtime.ClientSide\*.js" "$(ProjectDir)\bin\$(Configuration)"
-copy "$(ProjectDir)..\SampleApplication_ClientSide\bin\$(Configuration)\*.js" "$(ProjectDir)\bin\$(Configuration)"
-copy "$(ProjectDir)..\lib\Saltarelle\*.js" "$(ProjectDir)\bin\$(Configuration)"</PostBuildEvent>
+        copy /Y "$(ProjectDir)..\output\bin\$(Configuration)\*.js" "$(ProjectDir)\bin\$(Configuration)"
+        copy /Y "$(ProjectDir)..\Southpaw.Runtime.ClientSide\*.js" "$(ProjectDir)\bin\$(Configuration)"
+        copy /Y "$(ProjectDir)..\SampleApplication_ClientSide\bin\$(Configuration)\*.js" "$(ProjectDir)\bin\$(Configuration)"
+        copy /Y "$(ProjectDir)..\lib\Saltarelle\*.js" "$(ProjectDir)\bin\$(Configuration)"</PostBuildEvent>
   </PropertyGroup>
 </Project>

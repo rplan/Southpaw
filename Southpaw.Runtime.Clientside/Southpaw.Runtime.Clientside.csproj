@@ -89,13 +89,11 @@
   <!--<Import Project="$(ProgramFiles)\ScriptSharp\v1.0\ScriptSharp.targets" />-->
   <Import Project="C:\code\thirdparty\SaltarelleCompiler\bin\Saltarelle.Compiler.targets" />
   <PropertyGroup>
-    <PostBuildEvent Condition="'$(Configuration)' == 'Release'">
-          copy /Y $(ProjectDir)Southpaw.Runtime.Base.js $(ProjectDir)..\output\Southpaw.Runtime.Base.js
+      <PostBuildEvent>
+          copy /Y $(ProjectDir)..\lib\underscore\underscore.js $(ProjectDir)..\output\bin\$(Configuration)
+          copy /Y $(ProjectDir)Southpaw.Runtime.Base.js $(ProjectDir)..\output\bin\$(Configuration)\Southpaw.Runtime.Base.js
       </PostBuildEvent>
     <!--
           copy /Y $(ProjectDir)bin\$(Configuration)\Southpaw.Runtime.Clientside.js $(ProjectDir)..\output\Southpaw.Runtime.Clientside.js -->
-  </PropertyGroup>
-  <PropertyGroup>
-    <PostBuildEvent>copy $(ProjectDir)..\lib\underscore\underscore.js $(ProjectDir)..\output\bin\$(Configuration)</PostBuildEvent>
   </PropertyGroup>
 </Project>

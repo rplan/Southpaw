@@ -317,7 +317,7 @@ using Southpaw.Runtime.Clientside;
             settableProperties = 1; // TODO NCU TMP
             if (settableProperties > 0)
             {
-                outputWriter.Write("public bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)").EndLine()
+                outputWriter.Write("public ").Write(isInheritsFromOtherViewModel ? "override " : "virtual ").Write("bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)").EndLine()
                     .Write("{").EndLine()
                     .Indent()
                     .Write("if (json == null)").EndLine()
