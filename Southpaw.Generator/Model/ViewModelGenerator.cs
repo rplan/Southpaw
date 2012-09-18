@@ -215,11 +215,11 @@ using Southpaw.Runtime.Clientside;
                     errors.Add("Property " + p.Name + " in type " + type.FullName + " is of an invalid type (" + p.PropertyType.Name + ") - only primitive types, List<T>, or types within this assembly (" + assembly.FullName + ") can be used as property types");
             }
 
-            if (type.BaseType != typeof(Object) && type.BaseType != typeof(Array))
+            if (type.BaseType != typeof(Object) && type.BaseType != typeof(Array) && type.BaseType != typeof(ValueType))
             {
                 if (!assembly.GetTypes().Contains(type.BaseType))
                 {
-                    errors.Add("Class " + type.FullName + " for property inherits from " + type.BaseType.FullName + ", which isn't a valid type to inherit from (it isn't in the same assembly)");
+                    errors.Add("Class " + type.FullName + " inherits from " + type.BaseType.FullName + ", which isn't a valid type to inherit from (it isn't in the same assembly)");
                 }
             }
             if (errors.Count > 0)
@@ -547,7 +547,7 @@ using Southpaw.Runtime.Clientside;
             {
                 var baseType1 = type.GetGenericArguments()[0];
                 var baseType2 = type.GetGenericArguments()[1];
-                return "Dictionary<" + GetPropertyTypeNameForJsTypeConversion(baseType1) + ", " + GetPropertyTypeNameForJsTypeConversion(baseType2) + ">";
+                return "JsDictionary<" + GetPropertyTypeNameForJsTypeConversion(baseType1) + ", " + GetPropertyTypeNameForJsTypeConversion(baseType2) + ">";
             }
             if (type.IsArray)
             {
@@ -588,7 +588,7 @@ using Southpaw.Runtime.Clientside;
             {
                 var baseType1 = type.GetGenericArguments()[0];
                 var baseType2 = type.GetGenericArguments()[1];
-                return "Dictionary<" + GetPropertyTypeNameForJsTypeConversion(baseType1) + ", " + GetPropertyTypeNameForJsTypeConversion(baseType2) + ">";
+                return "JsDictionary<" + GetPropertyTypeNameForJsTypeConversion(baseType1) + ", " + GetPropertyTypeNameForJsTypeConversion(baseType2) + ">";
             }
             if (type.IsArray)
             {

@@ -35,6 +35,11 @@ namespace Southpaw.Generator.Tests
         public DateTime Prop{ get; set; }
     }
     
+    public class ModelWithDecimalProperty
+    {
+        public System.Decimal Prop{ get; set; }
+    }
+    
     public class ModelWithInvalidPropertyType
     {
         public Uri Prop{ get; set; }
@@ -556,6 +561,14 @@ namespace Southpaw.Generator.Tests
             var actual = new ViewModelGenerator(
                 new ViewModelGeneratorOptions { NamespaceSubstitution = new Tuple<string, string>("Southpaw.Generator.Tests", "Southpaw.Output.Tests") })
                 .ValidateType(this.GetType().Assembly, typeof(ModelWithDateTimeProperty));
+        }
+
+        [Test]
+        public void ValidateType_ClassWithDecimalPropertyType_ShouldNotThrow()
+        {
+            var actual = new ViewModelGenerator(
+                new ViewModelGeneratorOptions { NamespaceSubstitution = new Tuple<string, string>("Southpaw.Generator.Tests", "Southpaw.Output.Tests") })
+                .ValidateType(this.GetType().Assembly, typeof(ModelWithDecimalProperty));
         }
 
         [Test]
