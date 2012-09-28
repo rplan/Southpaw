@@ -4,3 +4,4 @@ obj/
 _ReSharper.*/
 *.dotCover
 *.user
+_dotCover.*/
