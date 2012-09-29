@@ -38,8 +38,9 @@ Southpaw.Runtime.Clientside.EventUtils = function () {
         if (this._callbacks[eventName] === undefined) {
             return;
         }
-        for(var callback in this._callbacks[eventName]) {
-            callback(evt);
+        var len = this._callbacks[eventName].length;
+        for (var i = 0; i < len; i++) {
+            this._callbacks[eventName][i](evt);
         }
     };
 };
@@ -47,7 +48,8 @@ Southpaw.Runtime.Clientside.EventUtils = function () {
 Southpaw.Runtime.Clientside.ViewModel$1 = function () {
     this._eventUtils = new Southpaw.Runtime.Clientside.EventUtils();
     this.attrs = {};
-    var _previousAttrs = {};
+    this._previousAttrs = {};
+    this._changed = {};
 };
 Southpaw.Runtime.Clientside.ViewModel$1.__typeName = 'ViewModel';
 
@@ -68,11 +70,7 @@ Southpaw.Runtime.Clientside.ViewModel$1.prototype = {
             var newValue = attributes[attributeName];
             if (!_.isEqual(currentAttrs[attributeName], newValue)) {
                 currentAttrs[attributeName] = newValue;
-                this.hasChanged = true;
-                if (!options.isSilent) {
-                    // TODO: arguments should be a jquery event
-                    this.trigger('change:' + attributeName, this, newValue, options);
-                }
+                this._changed[attributeName] = true;
             }
         }
         if (!options.isSilent) {
@@ -95,14 +93,21 @@ Southpaw.Runtime.Clientside.ViewModel$1.prototype = {
     },
 
     change: function (options) {
+        if (_.isEmpty(this._changed))
+            return;
         // TODO: arguments should be a jquery event
+        for (var attr in this._changed) {
+            this.trigger('change:' + attr, this, this.get(attr), options);
+            delete this._changed[attr];
+        }
         this.trigger('change', this, options);
-        _previousAttrs = _.clone(this.attrs);
-        this.hasChanged = false;
+        this._previousAttrs = _.clone(this.attrs);
     },
 
-    hasPropertyChanged: function (propertyName) {
-        return _previousAttrs[propertyName] != this.attrs[propertyName];
+    hasChanged: function (propertyName) {
+        if (propertyName)
+            return _.has(this._changed, propertyName);
+        return !_.isEmpty(this._changed);
     },
 
     setPropertyFromString: function (propertyName, newValue, type) {
@@ -185,7 +190,7 @@ Southpaw.Runtime.Clientside.ViewModel$1.prototype = {
 
     toJSON: function () {
         var json = _.clone(this.attrs);
-        for(x in json) {
+        for(var x in json) {
             if (!json.hasOwnProperty(x))
                 continue;
             if (json[x] && json[x].toJSON)

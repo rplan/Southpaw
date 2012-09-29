@@ -18,11 +18,18 @@ namespace Southpaw.Runtime.Clientside
             set { }
         }
 
-        [IntrinsicProperty]
-        public bool HasChanged
+        /// <summary>
+        /// Whether or not the model has changed since the 
+        /// last change event was fired.
+        /// </summary>
+        public bool HasChanged()
         {
-            get;
-            set; 
+            return false;
+        }
+
+        public bool HasChanged(string propertyName)
+        {
+            return false;
         }
 
         [InlineCode("{this}.set({{{propertyName}: {value}}})")]
@@ -40,6 +47,11 @@ namespace Southpaw.Runtime.Clientside
 
         protected void SetPropertyFromString(string propertyName, string value, Type propertyType, bool isNullable)
         {
+        }
+
+        public bool Set(JsDictionary<string, object> attributes)
+        {
+            return false;
         }
 
         public bool Set(JsDictionary<string, object> attributes, ViewSetOptions options)
