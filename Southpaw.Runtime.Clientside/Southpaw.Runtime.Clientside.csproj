@@ -10,7 +10,7 @@
     <NoStdLib>True</NoStdLib>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <TargetFrameworkProfile />
-    <LangVersion>ISO-2</LangVersion>
+    <LangVersion>4</LangVersion>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Southpaw.Runtime.Clientside</RootNamespace>
     <AssemblyName>Southpaw.Runtime.Clientside</AssemblyName>

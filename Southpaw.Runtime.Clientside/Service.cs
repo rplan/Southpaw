@@ -41,9 +41,8 @@ namespace Southpaw.Runtime.Clientside
         }
 
         // TODO: only required because of scriptsharp's poor handling of delegates
-        protected void DoCall(object query)
-        {
-        }
+        protected void DoCall() {}
+        protected void DoCall(object query) { }
 
         public abstract string GetUrl();
         public virtual string HttpMethod

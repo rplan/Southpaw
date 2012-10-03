@@ -5,16 +5,53 @@ using jQueryApi;
 
 namespace Southpaw.Runtime.Clientside
 {
+    public interface IViewModel 
+    {
+        /// <summary>
+        /// Whether or not the model has changed since the 
+        /// last change event was fired.
+        /// </summary>
+        [PreserveName]
+        bool HasChanged();
+
+        [PreserveName]
+        bool HasChanged(string propertyName);
+        [PreserveName]
+        bool Set(JsDictionary<string, object> attributes);
+        [PreserveName]
+        bool Set(JsDictionary<string, object> attributes, ViewSetOptions options);
+
+        /// <summary>
+        /// Can be overridden; returns true by default.
+        /// </summary>
+        /// <param name="attributes"></param>
+        /// <returns></returns>
+        [PreserveName]
+        bool Validate(Dictionary<string, object> attributes);
+
+        [PreserveName]
+        void Change();
+        [PreserveName]
+        void Clear();
+        [ScriptName("toJSON")]
+        JsDictionary<string, object> ToJSON();
+
+        void Bind(string eventName, ModelEventHandler callback);
+        void ClearEvents();
+        void Unbind(string eventName, ModelEventHandler callback);
+        void Trigger(string eventName);
+    }
+
     [Imported(IsRealType = true)]
     [IgnoreGenericArguments]
     [ScriptName("ViewModel$1")]
-    public abstract class ViewModel<TPrimaryKey> : IEvents
+    public abstract class ViewModel<TPrimaryKey> : IViewModel
     {
         public TPrimaryKey Id
         {
-            [InlineCode("{this}.get('id')")]
+            [InlineCode("{this}.get('Id')")]
             get { return default(TPrimaryKey); }
-            [InlineCode("{this}.set({{'id': {value}}})")]
+            [InlineCode("{this}.set({{'Id': {value}}})")]
             set { }
         }
 
@@ -84,7 +121,7 @@ namespace Southpaw.Runtime.Clientside
         {
         }
         
-        public void Bind(string eventName, jQueryEventHandler callback)
+        public void Bind(string eventName, ModelEventHandler callback)
         {
         }
 
@@ -92,11 +129,11 @@ namespace Southpaw.Runtime.Clientside
         {
         }
 
-        public void Unbind(string eventName, jQueryEventHandler callback)
+        public void Unbind(string eventName, ModelEventHandler callback)
         {
         }
 
-        public void Trigger(string eventName, jQueryEvent evt)
+        public void Trigger(string eventName)
         {
         }
 

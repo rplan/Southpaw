@@ -374,7 +374,11 @@ using Southpaw.Runtime.Clientside;
                             .Unindent()
                             .EndLine()
                             .Write("l.Clear();").EndLine()
-                            .Write("foreach(JsDictionary<string, object> itemJson in (List<JsDictionary<string, object>>)json[\"").Write(jsPropertyName).Write("\"])").EndLine()
+                            .Write("var jsonList = (List<JsDictionary<string, object>>)json[\"").Write(jsPropertyName).Write("\"];").EndLine()
+                            .Write("if (jsonList != null)")
+                            .EndLine()
+                            .Write("{").EndLine().Indent()
+                            .Write("foreach(JsDictionary<string, object> itemJson in jsonList)").EndLine()
                             .Write("{").EndLine()
                             .Indent()
                             .Write(GetPropertyTypeNameForMethodSignature(p.PropertyType.GetGenericArguments()[0])).Write(" x = new ").Write(GetPropertyTypeNameForMethodSignature(p.PropertyType.GetGenericArguments()[0])).Write("();").EndLine()
@@ -385,6 +389,7 @@ using Southpaw.Runtime.Clientside;
                             .Write("l.Add(x);").EndLine()
                             .Unindent()
                             .Write("}").EndLine()
+                            .Unindent().Write("}").EndLine()
                             .Write("json[\"").Write(jsPropertyName).Write("\"] = l;").EndLine();
                     }
 
@@ -438,7 +443,8 @@ using Southpaw.Runtime.Clientside;
 
         private string GetJsPropertyName(string p)
         {
-            return p[0].ToString().ToLower() + p.Substring(1);
+            //return p[0].ToString().ToLower() + p.Substring(1);
+            return p;
         }
 
         #region helper methods

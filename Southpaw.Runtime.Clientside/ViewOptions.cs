@@ -1,15 +1,22 @@
+using System.Collections.Generic;
 using System.Html;
 using jQueryApi;
 using System.Runtime.CompilerServices;
 
 namespace Southpaw.Runtime.Clientside
 {
-    //[IgnoreGenericArguments]
-    public class ViewOptions//<TModel>
+    [Imported(IsRealType = true)]
+    public class ViewOptions<TModel> : ViewOptions
     {
-        //public TModel Model { get; set; }
-        public object Model { get; set; }
+        [IntrinsicProperty]
+        public TModel Model { get; set; }
+    }
 
+    [Imported(IsRealType = true)]
+    public class ViewOptions
+    {
+
+        [IntrinsicProperty]
         public Element Element { get; set; }
 
         public string ElementSelector
@@ -18,6 +25,11 @@ namespace Southpaw.Runtime.Clientside
             {
                 Element = jQuery.Select(value)[0];
             }
+        }
+
+        public JsDictionary<string, object> ToJSON()
+        {
+            return null;
         }
     }
 }

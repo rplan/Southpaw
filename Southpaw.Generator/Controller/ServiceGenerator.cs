@@ -37,6 +37,7 @@ namespace Southpaw.Generator.Controller
             var baseClassesContent = new StringBuilder(@"using System;
 using System.Collections.Generic;
 using Southpaw.Runtime.Clientside;
+using System.Runtime.CompilerServices;
 
 ");
             Func<string, string> getServicePath = t =>
@@ -49,6 +50,16 @@ using Southpaw.Runtime.Clientside;
                     Console.WriteLine("Generated service path for " + t + ": " + s);
                     return s;
                 };
+
+            foreach (var t in assembly.GetTypes())
+            {
+                RegisterServiceArguments(t);
+            }
+            var argsClass = GenerateServiceArgs();
+            if (argsClass != null)
+            {
+                baseClassesContent.AppendLine(argsClass);
+            }
 
             foreach (var t in assembly.GetTypes())
             {
@@ -106,6 +117,8 @@ using Southpaw.Runtime.Clientside;
                     .Write("{").EndLine()
                     .Indent();
 
+                outputWriter.Write("[DependencyDefinition]")
+                    .EndLine();
                 outputWriter.Write("public class ").Write(GetServiceTypeName(type.Name, method.Name)).Write(" : ").Write(GetServiceBaseTypeName(type.Name, method.Name)).EndLine()
                     .Write("{").EndLine()
                     .Write("}").EndLine();
@@ -118,6 +131,107 @@ using Southpaw.Runtime.Clientside;
                 ret[Utils.GetNamespace(type.Namespace, _options.NamespaceSubstitution) + "." + GetServiceTypeName(type.Name, method.Name)] = outputWriter.ToString();
             }
             return ret;
+        }
+
+        private Dictionary<string, ServiceArguments> _argumentTypes = new Dictionary<string, ServiceArguments>();
+        internal void RegisterServiceArguments(Type type)
+        {
+            if (!IsApplicableForGeneration(type))
+                return;
+            foreach (var method in GetApplicableControllerMethods(type))
+            {
+                var methodParameters = method.GetParameters();
+                var serviceArgs = new ServiceArguments();
+                foreach (var param in methodParameters)
+                {
+                    serviceArgs.Arguments.Add(new ServiceArgumentType
+                                                  {
+                                                      Name = param.Name,
+                                                      Type = param.ParameterType
+                                                  });
+                }
+                _argumentTypes.Add(type.FullName + ":" + method.Name, serviceArgs);
+            }
+        }
+
+        internal string GenerateServiceArgs()
+        {
+            foreach (var serviceArguments in _argumentTypes)
+            {
+                KeyValuePair<string, ServiceArguments> arguments = serviceArguments;
+                var hasOthers = _argumentTypes.Count(kvp => kvp.Value.HasArgumentsWithSameNameButDifferentTypes(arguments.Value)) > 1;
+                if (arguments.Value.Arguments.Count == 0)
+                    serviceArguments.Value.GeneratedTypeName = null;
+                else if (arguments.Value.Arguments.Count == 1
+                    && arguments.Value.Arguments[0].Name.ToLower() == "id"
+                    && arguments.Value.Arguments[0].Type == typeof(int))
+                // special case for Id
+                {
+                    serviceArguments.Value.GeneratedTypeName = "IdServiceParam";
+                    var ns = serviceArguments.Key.Substring(0, serviceArguments.Key.IndexOf(':'));
+                    ns = ns.Substring(0, ns.LastIndexOf('.'));
+                    // TODO NCU this is incorrect - find the common base between Item1 and Item2 and use that.
+                    if (_options.NamespaceSubstitution != null && _options.NamespaceSubstitution.Item1 != null)
+                        ns = ns.Substring(0, _options.NamespaceSubstitution.Item1.Length);
+                    serviceArguments.Value.GeneratedTypeNamespace = ns;
+                }
+                else
+                {
+                    serviceArguments.Value.GeneratedTypeName = serviceArguments.Key.Substring(serviceArguments.Key.LastIndexOf('.') + 1).Replace(":", "_") + "ServiceParam";
+                    var ns = serviceArguments.Key.Substring(0, serviceArguments.Key.IndexOf(':'));
+                    ns = ns.Substring(0, ns.LastIndexOf('.'));
+                    serviceArguments.Value.GeneratedTypeNamespace = ns;
+                }
+            }
+            var generated = new List<string>();
+            var outputWriter = new OutputWriter();
+            foreach (var serviceArguments in _argumentTypes)
+            {
+                if (serviceArguments.Value.Arguments.Count == 0)
+                    continue;
+                if (generated.Contains(serviceArguments.Value.GeneratedTypeName))
+                    continue;
+                outputWriter.Write("namespace ")
+                    .Write(Utils.GetNamespace(serviceArguments.Value.GeneratedTypeNamespace, _options.NamespaceSubstitution)).EndLine()
+                    .Write("{").EndLine()
+                    .Indent();
+                outputWriter
+                    .Write("[IgnoreNamespace]")
+                    .Write("[Imported]")
+                    .Write("[ScriptName(\"Object\")]")
+                    .EndLine();
+                outputWriter.Write("public class ").Write(serviceArguments.Value.GeneratedTypeName).EndLine()
+                    .Write("{").EndLine()
+                    .Indent();
+                foreach(var param in serviceArguments.Value.Arguments)
+                {
+                    outputWriter
+                        .Write("[IntrinsicProperty]")
+                        .EndLine();
+                    outputWriter
+                        .Write("public ")
+                        .Write(GetParameterTypeForCallMethod(param.Type))
+                        .Write(" ").Write(GetParameterName(param.Name))
+                        .Write(" { get; set; }")
+                        .EndLine()
+                        .EndLine();
+                }
+                outputWriter
+                    .Unindent()
+                    .Write("}").EndLine()
+                    .Unindent()
+                    .Write("}").EndLine();
+                generated.Add(serviceArguments.Value.GeneratedTypeName);
+            }
+            return outputWriter.ToString();
+        }
+
+        private string GetParameterName(string name)
+        {
+            var n = name[0].ToString().ToUpper();
+            if (name.Length > 1)
+                n += name.Substring(1);
+            return n;
         }
 
         internal string GenerateBase(Type type)
@@ -138,23 +252,21 @@ using Southpaw.Runtime.Clientside;
                     .Indent();
 
                 // Call method
-                var methodParameters = method.GetParameters();
-                Type methodParameterType = null;
-                if (methodParameters.Length == 1)
-                    methodParameterType = methodParameters[0].ParameterType;
+                var args = _argumentTypes[type.FullName + ":" + method.Name];
+                
 
                 outputWriter.Write("public virtual void Call(");
-                if (methodParameterType != null)
-                    outputWriter.Write(GetParameterTypeForCallMethod(methodParameterType)).Write(" query");
+                if (args.Arguments.Count > 0)
+                    outputWriter.Write(args.GeneratedTypeName).Write(" query");
 
                 outputWriter.Write(")").EndLine()
                     .Write("{").EndLine()
                     .Indent();
 
-                if (methodParameterType != null)
+                if (args.Arguments.Count > 0)
                     outputWriter.Write("DoCall(query);").EndLine();
                 else
-                    outputWriter.Write("DoCall(null);").EndLine();
+                    outputWriter.Write("DoCall();").EndLine();
 
                 outputWriter
                     .Unindent()
@@ -285,6 +397,59 @@ using Southpaw.Runtime.Clientside;
     interface IInterface
     {
 
+    }
+
+    internal class ServiceArguments
+    {
+        public ServiceArguments()
+        {
+            Arguments = new List<ServiceArgumentType>();
+        }
+
+        public IList<ServiceArgumentType> Arguments { get; set; }
+        public string GeneratedTypeName { get; set; }
+        public string GeneratedTypeNamespace { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null || obj.GetType() != GetType())
+                return false;
+            var other = (ServiceArguments) obj;
+            if (other.Arguments.Count != Arguments.Count)
+                return false;
+            for (var i = 0; i < other.Arguments.Count; i++)
+            {
+                if (!other.Arguments[i].Equals(Arguments[i]))
+                    return false;
+            }
+            return true;
+        }
+
+        public bool HasArgumentsWithSameNameButDifferentTypes(ServiceArguments other)
+        {
+            if (other.Arguments.Count != Arguments.Count)
+                return false;
+            for (var i = 0; i < other.Arguments.Count; i++)
+            {
+                if (other.Arguments[i].Name == Arguments[i].Name
+                    && other.Arguments[i].Type != Arguments[i].Type)
+                    return true;
+            }
+            return false;
+        }
+    }
+
+    internal class ServiceArgumentType
+    {
+        public Type Type { get; set; }
+        public string Name { get; set; }
+        public override bool Equals(object obj)
+        {
+            if (obj == null || obj.GetType() != GetType())
+                return false;
+            var other = (ServiceArgumentType) obj;
+            return other.Type == Type && other.Name == Name;
+        }
     }
 
 }
