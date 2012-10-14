@@ -2,6 +2,12 @@
 Southpaw.Runtime = Southpaw.Runtime || Southpaw.Runtime || {};
 Southpaw.Runtime.Clientside = Southpaw.Runtime.Clientside || Southpaw.Runtime.Clientside || {};
 
+Southpaw.Runtime.Clientside.GlobalSettings = function() {
+
+};
+Southpaw.Runtime.Clientside.GlobalSettings.serviceSettings = {};
+Southpaw.Runtime.Clientside.GlobalSettings.viewSettings = {};
+Southpaw.Runtime.Clientside.GlobalSettings.viewModelSettings = { };
 Southpaw.Runtime.Clientside.EventUtils = function () {
     this._callbacks = {};
 
@@ -150,7 +156,6 @@ Southpaw.Runtime.Clientside.ViewModel$1.prototype = {
                 throw "Unknown type '" + type + "' used to set property '" + propertyName + "'";
         }
     },
-
     clear: function (options) {
         options = options || {};
         var old = this.attrs;
@@ -203,6 +208,7 @@ Southpaw.Runtime.Clientside.ViewModel$1.prototype = {
 Southpaw.Runtime.Clientside.Service = function () {
     this._onErrorCallbacks = [];
     this._onSuccessCallbacks = [];
+    this._options = {};
 
     this.addOnErrorCallback = function (callback) {
         if (callback)
@@ -212,36 +218,40 @@ Southpaw.Runtime.Clientside.Service = function () {
         if (callback)
             this._onSuccessCallbacks.push(callback);
     };
+    this.getJsonReviver = function () {
+        return this._reviver;
+    };
+    this.initialise = function(serviceOptions) {
+        if (serviceOptions) {
+            this._options = _.extend({ }, this._options, serviceOptions);
+        }
+    };
     //this.instantiateModel = function (returnValue) {
     //return returnValue;
     //};
 
     this.doCall = function (data) {
+        var url = this._options.url || this.getUrl();
+        var jsonReviver = this._options.jsonReviver || this.getJsonReviver() || Southpaw.Runtime.Clientside.GlobalSettings.serviceSettings[Southpaw.Runtime.Clientside.ServiceSettingName.jsonReviver];
+        var httpMethod = this._options.httpMethod || this.get_httpMethod() || Southpaw.Runtime.Clientside.GlobalSettings.serviceSettings[Southpaw.Runtime.Clientside.ServiceSettingName.httpMethod] || 'GET';
         // generator behaviour is to only generate an override if the method is POST
-        var type = this.get_httpMethod ? this.get_httpMethod() : "GET";
+        var type = httpMethod;
         // Default JSON-request options.
         var params = {
-            dataType: 'json',
-            url: this.getUrl(),
+            //dataType: 'json',
+            dataType: 'text',
+            url: url,
             processData: false,
             type: type
         };
 
         if (type.toLowerCase() == 'post') {
-            if (data.toJSON !== undefined) {
-                data = JSON.stringify(data.toJSON());
-            } else {
-                data = JSON.stringify(data);
-            }
+            data = JSON.stringify(data);
             params.data = data;
             params.contentType = 'application/json';
         } else {
             if (data) {
-                if (data.toJSON !== undefined) {
-                    data = JSON.stringify(data.toJSON());
-                } else {
-                    data = JSON.stringify(data);
-                }
+                data = JSON.stringify(data);
                 params.url += "/" + data;
             }
         }
@@ -257,13 +267,16 @@ Southpaw.Runtime.Clientside.Service = function () {
 
         if (this._onSuccessCallbacks.length > 0) {
             params.success = function (resp, textStatus) {
+                if (jsonReviver)
+                    data = JSON.parse(resp, jsonReviver);
+                else
+                    data = JSON.parse(resp);
                 // assume response is JSON
                 for (var i = 0; i < that._onSuccessCallbacks.length; i++) {
-                    that._onSuccessCallbacks[i].call(that, resp);
+                    that._onSuccessCallbacks[i].call(that, data);
                 }
             };
         }
-
 
         // Make the request.
         return $.ajax(params);

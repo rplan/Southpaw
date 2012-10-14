@@ -51,6 +51,28 @@ namespace Southpaw.Runtime.Clientside
     }
 
     //[IgnoreGenericArguments]
+    public abstract class View<TOptions> : View
+            where TOptions : ViewOptions
+    {
+        protected TOptions Options;
+        public virtual void Initialise(TOptions options)
+        {
+            Options = options;
+            if (options != null && options.Element != null)
+                SetElement(options.Element);
+                    // TODO: maybe set when a pre-existing view is passed in, and attach a new element to the parent when that's the case?
+            else
+                SetElement(Document.CreateElement("div"));
+            //if (options != null && options.Model != null)
+            //Model = options.Model;
+            //options.SetElement((Element)null);
+            RegisterEvents();
+            DelegateEvents();
+        }
+
+    }
+
+    //[IgnoreGenericArguments]
     public abstract class View /*<TModel>*/ : IEvents
     {
         private static int _uniqueViewIdCounter = 0;
@@ -66,18 +88,8 @@ namespace Southpaw.Runtime.Clientside
         private readonly List<View> _childViews = new List<View>();
         private readonly List<ModelEventHandlerDetails> _modelEventHandlers = new List<ModelEventHandlerDetails>();
 
-        protected View(ViewOptions /*<TModel>*/ options)
+        protected View()
         {
-            if (options != null && options.Element != null)
-                SetElement(options.Element);
-                    // TODO: maybe set when a pre-existing view is passed in, and attach a new element to the parent when that's the case?
-            else
-                SetElement(Document.CreateElement("div"));
-            //if (options != null && options.Model != null)
-            //Model = options.Model;
-            //options.SetElement((Element)null);
-            RegisterEvents();
-            DelegateEvents();
         }
 
 
@@ -150,7 +162,9 @@ namespace Southpaw.Runtime.Clientside
         }
 
         #region event delegation for actions
-        public abstract void RegisterEvents();
+        public virtual void RegisterEvents()
+        {
+        }
 
         public void RegisterEvent(string selector, jQueryEventHandler handler)
         {
@@ -202,7 +216,7 @@ namespace Southpaw.Runtime.Clientside
             }
         }
 
-        private void SetElement(Element element)
+        protected void SetElement(Element element)
         {
             Element = element;
             _jqElement = null;

@@ -40,6 +40,11 @@ using Southpaw.Runtime.Clientside;
 using System.Runtime.CompilerServices;
 
 ");
+
+            var superClassesUsings = @"
+using Southpaw.DependencyInjection.ClientSide;
+
+";
             Func<string, string> getServicePath = t =>
                 {
                     var s = "Services." + t.Substring(_options.NamespaceSubstitution.Item2.Length);
@@ -74,7 +79,7 @@ using System.Runtime.CompilerServices;
                 {
                     res.Add(new GeneratedFileDescriptor
                     {
-                        Contents = implementationClass.Value,
+                        Contents = superClassesUsings + "\r\n\r\n" + implementationClass.Value,
                         PathRelativeToSourceAssembly = getServicePath(implementationClass.Key)
                     });
                 }
@@ -119,7 +124,8 @@ using System.Runtime.CompilerServices;
 
                 outputWriter.Write("[DependencyDefinition]")
                     .EndLine();
-                outputWriter.Write("public class ").Write(GetServiceTypeName(type.Name, method.Name)).Write(" : ").Write(GetServiceBaseTypeName(type.Name, method.Name)).EndLine()
+                outputWriter.Write("public class ").Write(GetServiceTypeName(type.Name, method.Name))
+                    .Write(" : ").Write(GetServiceBaseTypeName(type.Name, method.Name)).EndLine()
                     .Write("{").EndLine()
                     .Write("}").EndLine();
 
@@ -243,19 +249,26 @@ using System.Runtime.CompilerServices;
             {
                 var clientServiceAttribute = (ClientServiceAttribute)method.GetCustomAttributes(typeof(ClientServiceAttribute), true)[0];
 
+                var returnType = clientServiceAttribute.ReturnType;
+                var args = _argumentTypes[type.FullName + ":" + method.Name];
+
                 outputWriter.Write("namespace ")
                     .Write(Utils.GetNamespace(type.Namespace, _options.NamespaceSubstitution)).EndLine()
                     .Write("{").EndLine()
                     .Indent();
-                outputWriter.Write("public class ").Write(GetServiceBaseTypeName(type.Name, method.Name)).Write(" : Service").EndLine()
+                outputWriter.Write("public class ").Write(GetServiceBaseTypeName(type.Name, method.Name))
+                    .Write(" : Service")
+                    .Write("<");
+                if (args.Arguments.Count > 0)
+                    outputWriter.Write(args.GeneratedTypeName).Write(",");
+                outputWriter.Write(Utils.GetNamespace(returnType.Namespace, _options.NamespaceSubstitution) + "." + Utils.GetViewModelTypeName(returnType.Name)).Write(">")
+                    .EndLine()
                     .Write("{").EndLine()
                     .Indent();
 
-                // Call method
-                var args = _argumentTypes[type.FullName + ":" + method.Name];
-                
 
-                outputWriter.Write("public virtual void Call(");
+                // Call method
+                outputWriter.Write("public override void Call(");
                 if (args.Arguments.Count > 0)
                     outputWriter.Write(args.GeneratedTypeName).Write(" query");
 
@@ -272,7 +285,6 @@ using System.Runtime.CompilerServices;
                     .Unindent()
                     .Write("}").EndLine();
 
-                var returnType = clientServiceAttribute.ReturnType;
                 // AddOnCompleteCallback method
                 /*
                 var returnType = clientServiceAttribute.ReturnType;
@@ -335,8 +347,7 @@ using System.Runtime.CompilerServices;
                 // end namespace
                 outputWriter
                     .Unindent()
-                    .Write("}").EndLine().EndLine()
-                    .Unindent();
+                    .Write("}").EndLine().EndLine();
             }
             return outputWriter.ToString();
         }

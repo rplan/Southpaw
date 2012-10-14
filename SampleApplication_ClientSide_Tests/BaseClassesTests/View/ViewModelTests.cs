@@ -135,7 +135,7 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
         {
             var v = new SimpleViewModel();
             var isEventTriggered = false;
-            jQueryEventHandler listener = evt => isEventTriggered = true;
+            ModelEventHandler listener = evt => isEventTriggered = true;
             v.Bind("change", listener);
             var dict = new JsDictionary<string, object>();
             dict["id"] = 12;
@@ -152,7 +152,7 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
         {
             var v = new SimpleViewModel();
             var isEventTriggered = false;
-            jQueryEventHandler listener = evt => isEventTriggered = true;
+            ModelEventHandler listener = evt => isEventTriggered = true;
             v.Bind("change:id", listener);
             var dict = new JsDictionary<string, object>();
             dict["id"] = 12;
@@ -170,7 +170,7 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
         {
             var v = new SimpleViewModel();
             var isEventTriggered = false;
-            jQueryEventHandler listener = evt => isEventTriggered = true;
+            ModelEventHandler listener = evt => isEventTriggered = true;
             v.Bind("change", listener);
             var dict = new JsDictionary<string, object>();
             dict["id"] = 12;
@@ -186,7 +186,7 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
         {
             var v = new SimpleViewModel();
             var isEventTriggered = false;
-            jQueryEventHandler listener = evt => isEventTriggered = true;
+            ModelEventHandler listener = evt => isEventTriggered = true;
             v.Bind("change:id", listener);
             var dict = new JsDictionary<string, object>();
             dict["id"] = 12;
@@ -203,7 +203,7 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
         {
             var v = new SimpleViewModel();
             var isEventTriggered = false;
-            jQueryEventHandler listener = evt => isEventTriggered = true;
+            ModelEventHandler listener = evt => isEventTriggered = true;
             v.Bind("change:id", listener);
             var dict = new JsDictionary<string, object>();
             dict["id"] = 12;
