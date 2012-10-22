@@ -7,7 +7,7 @@ Southpaw.Runtime.Clientside.GlobalSettings = function() {
 };
 Southpaw.Runtime.Clientside.GlobalSettings.serviceSettings = {};
 Southpaw.Runtime.Clientside.GlobalSettings.viewSettings = {};
-Southpaw.Runtime.Clientside.GlobalSettings.viewModelSettings = { };
+Southpaw.Runtime.Clientside.GlobalSettings.viewModelSettings = {};
 Southpaw.Runtime.Clientside.EventUtils = function () {
     this._callbacks = {};
 
@@ -51,11 +51,14 @@ Southpaw.Runtime.Clientside.EventUtils = function () {
     };
 };
 
+Southpaw.Runtime.Clientside.CidCounter = 0;
+
 Southpaw.Runtime.Clientside.ViewModel$1 = function () {
     this._eventUtils = new Southpaw.Runtime.Clientside.EventUtils();
     this.attrs = {};
     this._previousAttrs = {};
     this._changed = {};
+    this.cid = ++Southpaw.Runtime.Clientside.CidCounter;
 };
 Southpaw.Runtime.Clientside.ViewModel$1.__typeName = 'ViewModel';
 
@@ -69,7 +72,7 @@ Southpaw.Runtime.Clientside.ViewModel$1.prototype = {
         var currentAttrs = this.attrs;
 
         // validate if requested
-        if (!options.isSilent && options.validate && this.validate(attributes, options))
+        if (!options.silent && options.validate && this.validate(attributes, options))
             return false;
 
         for (var attributeName in attributes) {
@@ -79,7 +82,7 @@ Southpaw.Runtime.Clientside.ViewModel$1.prototype = {
                 this._changed[attributeName] = true;
             }
         }
-        if (!options.isSilent) {
+        if (!options.silent) {
             this.change(options);
         }
         return true;
@@ -163,12 +166,12 @@ Southpaw.Runtime.Clientside.ViewModel$1.prototype = {
         for (var attr in old) validObj[attr] = void 0;
 
         // validate if requested
-        if (!options.isSilent && options.validate && this.validate(validObj, options))
+        if (!options.silent && options.validate && this.validate(validObj, options))
             return false;
 
         this.attrs = {};
 
-        if (!options.isSilent) {
+        if (!options.silent) {
             for (var attributeName in old) {
                 // TODO: arguments should be a jquery event
                 this.trigger('change:' + attributeName, this, void 0, options);
@@ -200,7 +203,18 @@ Southpaw.Runtime.Clientside.ViewModel$1.prototype = {
                 continue;
             if (json[x] && json[x].toJSON)
                 json[x] = json[x].toJSON();
+            if (json[x] instanceof Array) {
+                var y = [];
+                for(var i = 0; i < json[x].length; i++) {
+                    if (json[x][i].toJSON)
+                        y.push(json[x][i].toJSON());
+                    else
+                        y.push(json[x][i]);
+                }
+                json[x] = y;
+            }
         }
+        json['Cid'] = this.cid;
         return json;
     }
 };
@@ -283,48 +297,63 @@ Southpaw.Runtime.Clientside.Service = function () {
     };
 };
 
-Southpaw.Runtime.Clientside.ViewModelCollection = function () {
+Southpaw.Runtime.Clientside.ViewModelCollection = function (type) {
     this._eventUtils = new Southpaw.Runtime.Clientside.EventUtils();
     this.items = [];
     var _previousItems = [];
+    this.type = type;
 };
 
 // TODO: no concept of identity; so hard/impossible to determine whether duplicates exist in a list (should throw an error if duplicates exist)
 Southpaw.Runtime.Clientside.ViewModelCollection.prototype = {
-    add: function (item) {
+    add: function (item, options) {
         this.items.push(item);
         // TODO argument to trigger should be jquery event
-        this.trigger('add', item);
-    },
-    addRange: function (items) {
-        for (var i = 0; i < items.length; i++) {
-            if (items[i])
-                this.add(items[i]);
+        if (!options || (options && !options.silent)) {
+            this.trigger('add', item);
+            this.trigger('change');
         }
     },
-    remove: function (item) {
+    addRange: function (items, options) {
+        for (var i = 0; i < items.length; i++) {
+            if (items[i])
+                this.add(items[i], options);
+        }
+    },
+    remove: function (item, options) {
         var idx = this._indexOf(item);
         if (idx >= 0) {
             var removedItems = this.items.splice(idx, 1);
             // TODO: should be a jquery event
-            this.trigger('remove', removedItems);
+            if (!options || (options && !options.silent)) {
+                this.trigger('remove', removedItems);
+                this.trigger('change');
+            }
             return 1;
         }
         return 0;
     },
-
-    removeAt: function (idx) {
+    removeAt: function (idx, options) {
         var removedItems = this.items.splice(idx, 1);
         // TODO: should be a jquery event
-        this.trigger('remove', removedItems);
+        if (!options || (options && !options.silent)) {
+            this.trigger('remove', removedItems);
+            this.trigger('change');
+        }
         return removedItems.length;
     },
-    clear: function () {
+    elementAt: function (idx) {
+        return this.items[idx];
+    },
+    clear: function (options) {
         var old = this.clone();
         this.items = [];
         // TODO: should be a jquery event
-        this.trigger('remove', this.clone());
-        this.trigger('clear');
+        if (!options || (options && !options.silent)) {
+            this.trigger('remove', this.clone());
+            this.trigger('clear');
+            this.trigger('change');
+        }
     },
     contains: function (item) {
         return this._indexOf(item) >= 0;
@@ -360,10 +389,63 @@ Southpaw.Runtime.Clientside.ViewModelCollection.prototype = {
 
     trigger: function (eventName, evt) {
         this._eventUtils.trigger(eventName, evt);
+    },
+    set: function (jsonArray, options) {
+        // TODO: should handle updates to collection children,
+        // based on PK and/or CID
+        if (jsonArray.length === undefined)
+            throw "Attempting to pass an argument into ViewModelCollection.set which isn't an array of JSON objects"
+        this.clear({ silent: true });
+        for (var i = 0; i < jsonArray.length; i++) {
+            var m = new this.type();
+            // TODO: merge silent: true and options argument above
+            m.set(jsonArray[i], { silent: true });
+            this.add(m, { silent: true });
+        }
+        if (!options || (options && !options.silent)) {
+            this.trigger('change');
+        }
+    },
+    setFromJSON: function (jsonArray, options) {
+        // TODO: should handle updates to collection children,
+        // based on PK and/or CID
+        if (jsonArray.length === undefined)
+            throw "Attempting to pass an argument into ViewModelCollection.setFromJSON which isn't an array of JSON objects"
+        this.clear({ silent: true });
+        for (var i = 0; i < jsonArray.length; i++) {
+            var m = new this.type();
+            // TODO: merge silent: true and options argument above
+            m.SetFromJSON(jsonArray[i], { silent: true });
+            this.add(m, { silent: true });
+        }
+        if (!options || (options && !options.silent)) {
+            this.trigger('change');
+        }
+    },
+    toJSON: function () {
+        var arr = [];
+        for(var i = 0; i < this.items.length; i++) {
+            arr.push(this.items[i].toJSON());
+        }
+        return arr;
+    },
+    getById: function (id) {
+        for(var i = 0; i < this.items.length; i++) {
+            if (this.items[i].get("Id") == id)
+                return this.items[i];
+        }
+        return null;
+    },
+    getByCid: function (cid) {
+        for(var i = 0; i < this.items.length; i++) {
+            if (this.items[i].cid == cid)
+                return this.items[i];
+        }
+        return null;
     }
 };
 
-Southpaw.Runtime.Clientside.ViewOptions = function() {
+Southpaw.Runtime.Clientside.ViewOptions = function () {
 };
 
 Southpaw.Runtime.Clientside.ViewOptions.prototype = {
@@ -381,19 +463,19 @@ Southpaw.Runtime.Clientside.ViewOptions.prototype = {
 };
 
 Southpaw.Runtime.Clientside.ViewOptions$1 = function(TModel) {
-	var $type = function() {
-		this.model = TModel.getDefaultValue();
-		Southpaw.Runtime.Clientside.ViewOptions.call(this);
-	};
-	$type.registerGenericClassInstance($type, Southpaw.Runtime.Clientside.ViewOptions$1, [TModel], function() {
-		return Southpaw.Runtime.Clientside.ViewOptions;
-	}, function() {
-		return [];
-	});
-	return $type;
+	//var $type = function() {
+		//this.model = TModel.getDefaultValue();
+		//Southpaw.Runtime.Clientside.ViewOptions.call(this);
+	//};
+	//$type.registerGenericClassInstance($type, Southpaw.Runtime.Clientside.ViewOptions$1, [TModel], function() {
+		//return Southpaw.Runtime.Clientside.ViewOptions;
+	//}, function() {
+		//return [];
+	//});
+	//return $type;
 };
-Southpaw.Runtime.Clientside.ViewOptions$1.registerGenericClass('Southpaw.Runtime.Clientside.ViewOptions$1', 1);
-Southpaw.Runtime.Clientside.ViewOptions.registerClass('Southpaw.Runtime.Clientside.ViewOptions', Object);
+//Southpaw.Runtime.Clientside.ViewOptions$1.registerGenericClass('Southpaw.Runtime.Clientside.ViewOptions$1', 1);
+//Southpaw.Runtime.Clientside.ViewOptions.registerClass('Southpaw.Runtime.Clientside.ViewOptions', Object);
 
 Southpaw.Runtime.Clientside.Router = function (options) {
     this._eventUtils = new Southpaw.Runtime.Clientside.EventUtils();

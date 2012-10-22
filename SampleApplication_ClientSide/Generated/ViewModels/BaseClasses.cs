@@ -9,75 +9,79 @@ namespace SampleApplication_ClientSide
     {
         public string Name
         {
-            [InlineCode("{this}.get('name')")]
+            [InlineCode("{this}.get('Name')")]
             get { return default(string); }
-            [InlineCode("{this}.set({{'name': {value}}})")]
+            [InlineCode("{this}.set({{'Name': {value}}})")]
             set { }
         }
 
         public List<SampleApplication_ClientSide.PostViewModel> Posts
         {
-            [InlineCode("{this}.get('posts')")]
+            [InlineCode("{this}.get('Posts')")]
             get { return default(List<SampleApplication_ClientSide.PostViewModel>); }
-            [InlineCode("{this}.set({{'posts': {value}}})")]
+            [InlineCode("{this}.set({{'Posts': {value}}})")]
             set { }
         }
 
         public SampleApplication_ClientSide.UserViewModel Owner
         {
-            [InlineCode("{this}.get('owner')")]
+            [InlineCode("{this}.get('Owner')")]
             get { return default(SampleApplication_ClientSide.UserViewModel); }
-            [InlineCode("{this}.set({{'owner': {value}}})")]
+            [InlineCode("{this}.set({{'Owner': {value}}})")]
             set { }
         }
 
-        public virtual bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
+        public override bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
         {
             if (json == null)
                 return true;
-            if (json.ContainsKey("posts"))
+            if (json.ContainsKey("Posts"))
             {
                 List<SampleApplication_ClientSide.PostViewModel> l = new List<SampleApplication_ClientSide.PostViewModel>();
                 if (this.Posts != null)
                     l = this.Posts;
 
                 l.Clear();
-                foreach(JsDictionary<string, object> itemJson in (List<JsDictionary<string, object>>)json["posts"])
+                var jsonList = (List<JsDictionary<string, object>>)json["Posts"];
+                if (jsonList != null)
                 {
-                    SampleApplication_ClientSide.PostViewModel x = new SampleApplication_ClientSide.PostViewModel();
-                    if (!x.SetFromJSON(itemJson, options))
-                        return false;
-                    l.Add(x);
+                    foreach(JsDictionary<string, object> itemJson in jsonList)
+                    {
+                        SampleApplication_ClientSide.PostViewModel x = new SampleApplication_ClientSide.PostViewModel();
+                        if (!x.SetFromJSON(itemJson, options))
+                            return false;
+                        l.Add(x);
+                    }
                 }
-                json["posts"] = l;
+                json["Posts"] = l;
             }
-            if (json.ContainsKey("owner"))
+            if (json.ContainsKey("Owner"))
             {
                 if (this.Owner != null)
                 {
-                    if (this.Owner.SetFromJSON((JsDictionary<string, object>)json["owner"], options))
-                        json.Remove("owner");
+                    if (this.Owner.SetFromJSON((JsDictionary<string, object>)json["Owner"], options))
+                        json.Remove("Owner");
                     else
                         return false;
                 }
                 else
                 {
                     SampleApplication_ClientSide.UserViewModel x = new SampleApplication_ClientSide.UserViewModel();
-                    if (!x.SetFromJSON((JsDictionary<string, object>)json["owner"], options))
+                    if (!x.SetFromJSON((JsDictionary<string, object>)json["Owner"], options))
                         return false;
-                    json["owner"] = x;
+                    json["Owner"] = x;
                 }
             }
             return base.Set(json, options);
         }
         public void SetIdFromString(string value)
         {
-            SetPropertyFromString("id", value, typeof(int), false);
+            SetPropertyFromString("Id", value, typeof(int), false);
         }
 
         public void SetNameFromString(string value)
         {
-            SetPropertyFromString("name", value, typeof(string), false);
+            SetPropertyFromString("Name", value, typeof(string), false);
         }
 
     }
@@ -89,29 +93,29 @@ namespace SampleApplication_ClientSide
     {
         public string Email
         {
-            [InlineCode("{this}.get('email')")]
+            [InlineCode("{this}.get('Email')")]
             get { return default(string); }
-            [InlineCode("{this}.set({{'email': {value}}})")]
+            [InlineCode("{this}.set({{'Email': {value}}})")]
             set { }
         }
 
         public string FirstName
         {
-            [InlineCode("{this}.get('firstName')")]
+            [InlineCode("{this}.get('FirstName')")]
             get { return default(string); }
-            [InlineCode("{this}.set({{'firstName': {value}}})")]
+            [InlineCode("{this}.set({{'FirstName': {value}}})")]
             set { }
         }
 
         public string LastName
         {
-            [InlineCode("{this}.get('lastName')")]
+            [InlineCode("{this}.get('LastName')")]
             get { return default(string); }
-            [InlineCode("{this}.set({{'lastName': {value}}})")]
+            [InlineCode("{this}.set({{'LastName': {value}}})")]
             set { }
         }
 
-        public virtual bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
+        public override bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
         {
             if (json == null)
                 return true;
@@ -119,22 +123,22 @@ namespace SampleApplication_ClientSide
         }
         public void SetIdFromString(string value)
         {
-            SetPropertyFromString("id", value, typeof(int), false);
+            SetPropertyFromString("Id", value, typeof(int), false);
         }
 
         public void SetEmailFromString(string value)
         {
-            SetPropertyFromString("email", value, typeof(string), false);
+            SetPropertyFromString("Email", value, typeof(string), false);
         }
 
         public void SetFirstNameFromString(string value)
         {
-            SetPropertyFromString("firstName", value, typeof(string), false);
+            SetPropertyFromString("FirstName", value, typeof(string), false);
         }
 
         public void SetLastNameFromString(string value)
         {
-            SetPropertyFromString("lastName", value, typeof(string), false);
+            SetPropertyFromString("LastName", value, typeof(string), false);
         }
 
     }
@@ -146,9 +150,9 @@ namespace SampleApplication_ClientSide
     {
         public int Permission
         {
-            [InlineCode("{this}.get('permission')")]
+            [InlineCode("{this}.get('Permission')")]
             get { return default(int); }
-            [InlineCode("{this}.set({{'permission': {value}}})")]
+            [InlineCode("{this}.set({{'Permission': {value}}})")]
             set { }
         }
 
@@ -160,7 +164,7 @@ namespace SampleApplication_ClientSide
         }
         public void SetPermissionFromString(string value)
         {
-            SetPropertyFromString("permission", value, typeof(int), false);
+            SetPropertyFromString("Permission", value, typeof(int), false);
         }
 
     }
@@ -172,102 +176,102 @@ namespace SampleApplication_ClientSide
     {
         public SampleApplication_ClientSide.UserViewModel Author
         {
-            [InlineCode("{this}.get('author')")]
+            [InlineCode("{this}.get('Author')")]
             get { return default(SampleApplication_ClientSide.UserViewModel); }
-            [InlineCode("{this}.set({{'author': {value}}})")]
+            [InlineCode("{this}.set({{'Author': {value}}})")]
             set { }
         }
 
         public string Title
         {
-            [InlineCode("{this}.get('title')")]
+            [InlineCode("{this}.get('Title')")]
             get { return default(string); }
-            [InlineCode("{this}.set({{'title': {value}}})")]
+            [InlineCode("{this}.set({{'Title': {value}}})")]
             set { }
         }
 
         public string Content
         {
-            [InlineCode("{this}.get('content')")]
+            [InlineCode("{this}.get('Content')")]
             get { return default(string); }
-            [InlineCode("{this}.set({{'content': {value}}})")]
+            [InlineCode("{this}.set({{'Content': {value}}})")]
             set { }
         }
 
         public SampleApplication_ClientSide.BlogViewModel Blog
         {
-            [InlineCode("{this}.get('blog')")]
+            [InlineCode("{this}.get('Blog')")]
             get { return default(SampleApplication_ClientSide.BlogViewModel); }
-            [InlineCode("{this}.set({{'blog': {value}}})")]
+            [InlineCode("{this}.set({{'Blog': {value}}})")]
             set { }
         }
 
         public DateTime PostedAt
         {
-            [InlineCode("{this}.get('postedAt')")]
+            [InlineCode("{this}.get('PostedAt')")]
             get { return default(DateTime); }
-            [InlineCode("{this}.set({{'postedAt': {value}}})")]
+            [InlineCode("{this}.set({{'PostedAt': {value}}})")]
             set { }
         }
 
-        public virtual bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
+        public override bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
         {
             if (json == null)
                 return true;
-            if (json.ContainsKey("author"))
+            if (json.ContainsKey("Author"))
             {
                 if (this.Author != null)
                 {
-                    if (this.Author.SetFromJSON((JsDictionary<string, object>)json["author"], options))
-                        json.Remove("author");
+                    if (this.Author.SetFromJSON((JsDictionary<string, object>)json["Author"], options))
+                        json.Remove("Author");
                     else
                         return false;
                 }
                 else
                 {
                     SampleApplication_ClientSide.UserViewModel x = new SampleApplication_ClientSide.UserViewModel();
-                    if (!x.SetFromJSON((JsDictionary<string, object>)json["author"], options))
+                    if (!x.SetFromJSON((JsDictionary<string, object>)json["Author"], options))
                         return false;
-                    json["author"] = x;
+                    json["Author"] = x;
                 }
             }
-            if (json.ContainsKey("blog"))
+            if (json.ContainsKey("Blog"))
             {
                 if (this.Blog != null)
                 {
-                    if (this.Blog.SetFromJSON((JsDictionary<string, object>)json["blog"], options))
-                        json.Remove("blog");
+                    if (this.Blog.SetFromJSON((JsDictionary<string, object>)json["Blog"], options))
+                        json.Remove("Blog");
                     else
                         return false;
                 }
                 else
                 {
                     SampleApplication_ClientSide.BlogViewModel x = new SampleApplication_ClientSide.BlogViewModel();
-                    if (!x.SetFromJSON((JsDictionary<string, object>)json["blog"], options))
+                    if (!x.SetFromJSON((JsDictionary<string, object>)json["Blog"], options))
                         return false;
-                    json["blog"] = x;
+                    json["Blog"] = x;
                 }
             }
             return base.Set(json, options);
         }
         public void SetIdFromString(string value)
         {
-            SetPropertyFromString("id", value, typeof(int), false);
+            SetPropertyFromString("Id", value, typeof(int), false);
         }
 
         public void SetTitleFromString(string value)
         {
-            SetPropertyFromString("title", value, typeof(string), false);
+            SetPropertyFromString("Title", value, typeof(string), false);
         }
 
         public void SetContentFromString(string value)
         {
-            SetPropertyFromString("content", value, typeof(string), false);
+            SetPropertyFromString("Content", value, typeof(string), false);
         }
 
         public void SetPostedAtFromString(string value)
         {
-            SetPropertyFromString("postedAt", value, typeof(DateTime), false);
+            SetPropertyFromString("PostedAt", value, typeof(DateTime), false);
         }
 
     }

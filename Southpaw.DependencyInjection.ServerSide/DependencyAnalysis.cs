@@ -49,18 +49,18 @@ namespace Southpaw.DependencyInjection.ServerSide
                     var argLen = attr.ConstructorArguments.Count;
                     if (argLen == 0)
                     {
-                        targetType = type.FullName;
+                        targetType = GetJsTypeName(type);
                     }
                     else if (argLen == 1)
                     {
-                        targetType = ((TypeDefinition)attr.ConstructorArguments[0].Value).FullName;
+                        targetType = GetJsTypeName((TypeDefinition) attr.ConstructorArguments[0].Value);
                     }
                     else if (argLen == 2)
                     {
-                        targetType = ((TypeDefinition)attr.ConstructorArguments[0].Value).FullName;
+                        targetType = GetJsTypeName((TypeDefinition) attr.ConstructorArguments[0].Value);
                         targetVars = Utils.ParseVariables(attr.ConstructorArguments[1].Value.ToString());
                     }
-                    candidate = new DependencyCandidate {TypeName = type.FullName, Variables = targetVars};
+                    candidate = new DependencyCandidate {TypeName = GetJsTypeName(type), Variables = targetVars};
                     if (!dict.ContainsKey(targetType))
                         dict[targetType] = new List<DependencyCandidate>();
                     dict[targetType].Add((candidate));
@@ -89,6 +89,18 @@ namespace Southpaw.DependencyInjection.ServerSide
                 res[candidate.Key] = candidateType;
             }
             return res;
+        }
+
+        internal static string GetJsTypeName(Type t)
+        {
+            //return "$" + t.FullName.Replace(".", "_");
+            return t.FullName;
+        }
+
+        internal static string GetJsTypeName(TypeDefinition t)
+        {
+            //return "$" + t.FullName.Replace(".", "_");
+            return t.FullName;
         }
 
         internal static int CalculatePoints(Dictionary<string, string> compilationVars, Dictionary<string, string> candidateVars)

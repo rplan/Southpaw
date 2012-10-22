@@ -14,16 +14,16 @@ namespace SampleApplication_ClientSide_Tests.GeneratedClassesTests.ViewModel
         public void DeserializeFromJson_SimpleObject_ShouldWork()
         {
             var json = new JsDictionary<string, object>();
-            json["id"] = 1;
-            json["email"] = "test@test.com";
-            json["firstName"] = "John";
-            json["lastName"] = "Doe";
+            json["Id"] = 1;
+            json["Email"] = "test@test.com";
+            json["FirstName"] = "John";
+            json["LastName"] = "Doe";
             var user = new UserViewModel();
             user.SetFromJSON(json, null);
-            Assert.AreEqual(json["id"], user.Id);
-            Assert.AreEqual(json["email"], user.Email);
-            Assert.AreEqual(json["firstName"], user.FirstName);
-            Assert.AreEqual(json["lastName"], user.LastName);
+            Assert.AreEqual(user.Id, json["Id"]);
+            Assert.AreEqual(user.Email, json["Email"]);
+            Assert.AreEqual(user.FirstName, json["FirstName"]);
+            Assert.AreEqual(user.LastName, json["LastName"]);
         }
 
         [Test]
@@ -32,13 +32,13 @@ namespace SampleApplication_ClientSide_Tests.GeneratedClassesTests.ViewModel
             var json =
                 (JsDictionary<string, object>)
                 Json.Parse(
-                    @" { ""title"": ""Test Title"", ""content"": ""Test Text"", ""author"": { ""email"": ""test@test.com"", ""id"": 2 } } ");
+                    @" { ""Title"": ""Test Title"", ""Content"": ""Test Text"", ""Author"": { ""Email"": ""test@test.com"", ""Id"": 2 } } ");
             var post = new PostViewModel();
             post.SetFromJSON(json, null);
-            Assert.AreEqual("Test Title", post.Title);
-            Assert.AreEqual("Test Text", post.Content);
-            Assert.AreEqual(2, post.Author.Id);
-            Assert.AreEqual("test@test.com", post.Author.Email);
+            Assert.AreEqual(post.Title, "Test Title");
+            Assert.AreEqual(post.Content, "Test Text");
+            Assert.AreEqual(post.Author.Id, 2);
+            Assert.AreEqual(post.Author.Email, "test@test.com");
         }
 
         [Test]
@@ -47,16 +47,16 @@ namespace SampleApplication_ClientSide_Tests.GeneratedClassesTests.ViewModel
             var json =
                 (JsDictionary<string, object>)
                 Json.Parse(
-                    @" { ""title"": ""Test Title"", ""content"": ""Test Text"", ""author"": { ""email"": ""test@test.com"", ""id"": 2 } } ");
+                    @" { ""Title"": ""Test Title"", ""Content"": ""Test Text"", ""Author"": { ""Email"": ""test@test.com"", ""Id"": 2 } } ");
             var post = new PostViewModel();
             var originalAuthor = new UserViewModel {Id = 3, Email = "test2@test.com"};
             var anotherAuthor = new UserViewModel {Id = 2, Email = "test@test.com"};
             post.Author = originalAuthor;
             post.SetFromJSON(json, null);
-            Assert.AreEqual("Test Title", post.Title);
-            Assert.AreEqual("Test Text", post.Content);
-            Assert.AreEqual(2, post.Author.Id);
-            Assert.AreEqual("test@test.com", post.Author.Email);
+            Assert.AreEqual(post.Title, "Test Title");
+            Assert.AreEqual(post.Content, "Test Text");
+            Assert.AreEqual(post.Author.Id, 2);
+            Assert.AreEqual(post.Author.Email, "test@test.com");
             Assert.IsTrue(post.Author == originalAuthor,
                           "identity equality check - ensure any existing nested object's identity is preserved by FromJson, otherwise existing event bindings to be lost.");
             Assert.IsTrue(post.Author != anotherAuthor,
@@ -69,17 +69,17 @@ namespace SampleApplication_ClientSide_Tests.GeneratedClassesTests.ViewModel
             var json =
                 (JsDictionary<string, object>)
                 Json.Parse(
-                    @" { ""name"": ""Blog Name"", ""owner"": { ""email"": ""test@test.com"", ""id"": 2 }, ""posts"": [{ ""id"": 1, ""title"": ""test 1""}, {""id"": 2, ""title"": ""test 2"" }] } ");
+                    @" { ""Name"": ""Blog Name"", ""Owner"": { ""Email"": ""test@test.com"", ""Id"": 2 }, ""Posts"": [{ ""Id"": 1, ""Title"": ""test 1""}, {""Id"": 2, ""Title"": ""test 2"" }] } ");
             var blog = new BlogViewModel();
             blog.SetFromJSON(json, null);
-            Assert.AreEqual("Blog Name", blog.Name);
-            Assert.AreEqual(2, blog.Owner.Id);
-            Assert.AreEqual("test@test.com", blog.Owner.Email);
-            Assert.AreEqual(2, blog.Posts.Count);
-            Assert.AreEqual(1, blog.Posts[0].Id);
-            Assert.AreEqual("test 1", blog.Posts[0].Title);
-            Assert.AreEqual(2, blog.Posts[1].Id);
-            Assert.AreEqual("test 2", blog.Posts[1].Title);
+            Assert.AreEqual(blog.Name, "Blog Name");
+            Assert.AreEqual(blog.Owner.Id, 2);
+            Assert.AreEqual(blog.Owner.Email, "test@test.com");
+            Assert.AreEqual(blog.Posts.Count, 2);
+            Assert.AreEqual(blog.Posts[0].Id, 1);
+            Assert.AreEqual(blog.Posts[0].Title, "test 1");
+            Assert.AreEqual(blog.Posts[1].Id, 2);
+            Assert.AreEqual(blog.Posts[1].Title, "test 2");
         }
 
         [Test]
@@ -88,20 +88,20 @@ namespace SampleApplication_ClientSide_Tests.GeneratedClassesTests.ViewModel
             var json =
                 (JsDictionary<string, object>)
                 Json.Parse(
-                    @" { ""name"": ""Blog Name"", ""owner"": { ""email"": ""test@test.com"", ""id"": 2 }, ""posts"": [{ ""id"": 1, ""title"": ""test 1""}, {""id"": 2, ""title"": ""test 2"" }] } ");
+                    @" { ""Name"": ""Blog Name"", ""Owner"": { ""Email"": ""test@test.com"", ""Id"": 2 }, ""Posts"": [{ ""Id"": 1, ""Title"": ""test 1""}, {""Id"": 2, ""Title"": ""test 2"" }] } ");
             var blog = new BlogViewModel();
             var originalPostsList = new List<PostViewModel>();
             originalPostsList.Add(new PostViewModel {Id = 5, Title = "test 5"});
             blog.Posts = originalPostsList;
             blog.SetFromJSON(json, null);
-            Assert.AreEqual("Blog Name", blog.Name);
-            Assert.AreEqual(2, blog.Owner.Id);
-            Assert.AreEqual("test@test.com", blog.Owner.Email);
-            Assert.AreEqual(2, blog.Posts.Count);
-            Assert.AreEqual(1, blog.Posts[0].Id);
-            Assert.AreEqual("test 1", blog.Posts[0].Title);
-            Assert.AreEqual(2, blog.Posts[1].Id);
-            Assert.AreEqual("test 2", blog.Posts[1].Title);
+            Assert.AreEqual(blog.Name, "Blog Name");
+            Assert.AreEqual(blog.Owner.Id, 2);
+            Assert.AreEqual(blog.Owner.Email, "test@test.com");
+            Assert.AreEqual(blog.Posts.Count, 2);
+            Assert.AreEqual(blog.Posts[0].Id, 1);
+            Assert.AreEqual(blog.Posts[0].Title, "test 1");
+            Assert.AreEqual(blog.Posts[1].Id, 2);
+            Assert.AreEqual(blog.Posts[1].Title, "test 2");
         }
 
         [Test]
@@ -110,7 +110,7 @@ namespace SampleApplication_ClientSide_Tests.GeneratedClassesTests.ViewModel
             var json =
                 (JsDictionary<string, object>)
                 Json.Parse(
-                    @" { ""name"": ""Blog Name"", ""owner"": { ""email"": ""test@test.com"", ""id"": 2 }, ""posts"": [{ ""id"": 1, ""title"": ""test 1""}, {""id"": 2, ""title"": ""test 2"" }] } ");
+                    @" { ""Name"": ""Blog Name"", ""Owner"": { ""Email"": ""test@test.com"", ""Id"": 2 }, ""Posts"": [{ ""Id"": 1, ""Title"": ""test 1""}, {""Id"": 2, ""Title"": ""test 2"" }] } ");
             var blog = new BlogViewModel();
             var originalPostsList = new List<PostViewModel>();
             originalPostsList.Add(new PostViewModel {Id = 5, Title = "test 5"});

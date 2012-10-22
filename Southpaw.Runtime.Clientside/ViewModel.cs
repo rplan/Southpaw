@@ -101,7 +101,8 @@ namespace Southpaw.Runtime.Clientside
             return false;
         }
 
-        //public abstract bool SetFromJSON(Dictionary<string, object> json);
+        [PreserveCase]
+        public abstract bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options);
 
         /// <summary>
         /// Can be overridden; returns true by default.
@@ -141,5 +142,8 @@ namespace Southpaw.Runtime.Clientside
         { 
             return null;
         }
+
+        [IntrinsicProperty]
+        public int Cid { get; set; }
     }
 }

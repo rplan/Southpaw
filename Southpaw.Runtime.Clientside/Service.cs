@@ -49,18 +49,20 @@ namespace Southpaw.Runtime.Clientside
      */
     public delegate void OnCompleteCallback(object queryObject);
 
-    public interface IService<TResponse> : IService
-    {
-        void Call();
-    }
+    //public interface IService<TResponse> : IService
+    //{
+        //void Call();
+    //}
+//
+    //public interface IService<TQuery, TResponse> : IService
+        //where TQuery: class
+    //{
+        //void Call(TQuery query = null);
+    //}
 
-    public interface IService<TQuery, TResponse> : IService
+    [IgnoreGenericArguments]
+    public interface IService<TQuery, TResponse>
         where TQuery: class
-    {
-        void Call(TQuery query = null);
-    }
-
-    public interface IService
     {
         void AddOnErrorCallback(Action onError);
         void AddOnSuccessCallback(Action<JsDictionary<string, object>> onSuccess);
@@ -68,6 +70,7 @@ namespace Southpaw.Runtime.Clientside
         string HttpMethod { get; }
         object GetJsonReviver();
         void Initialise(ServiceOptions options = null);
+        void Call(TQuery query = null);
     }
 
     [ScriptName("object")]
@@ -81,23 +84,28 @@ namespace Southpaw.Runtime.Clientside
         public object JsonReviver { get; set; }
     }
 
+    //[Imported(IsRealType = true)]
+    //public abstract class Service<TQuery, TResponse> : Service, IService<TQuery, TResponse>
+        //where TQuery: class
+    //{
+        //public abstract void Call(TQuery query = null);
+    //}
+//
+    //[Imported(IsRealType = true)]
+    //public abstract class Service<TResponse> : Service, IService<TResponse>
+    //{
+        //public abstract void Call();
+    //}
+//
+
     [Imported(IsRealType = true)]
-    public abstract class Service<TQuery, TResponse> : Service, IService<TQuery, TResponse>
+    //public abstract class Service : IService
+    [IgnoreGenericArguments]
+    public abstract class Service<TQuery, TResponse> : IService<TQuery, TResponse>
         where TQuery: class
     {
+
         public abstract void Call(TQuery query = null);
-    }
-
-    [Imported(IsRealType = true)]
-    public abstract class Service<TResponse> : Service, IService<TResponse>
-    {
-        public abstract void Call();
-    }
-
-
-    [Imported(IsRealType = true)]
-    public abstract class Service : IService
-    {
 
         public void AddOnErrorCallback(Action onError)
         {

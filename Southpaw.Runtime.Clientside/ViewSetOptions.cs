@@ -8,6 +8,7 @@ namespace Southpaw.Runtime.Clientside
         /// <summary>
         /// Events don't fire when IsSilent is true
         /// </summary>
+        [ScriptName("silent")]
         public bool IsSilent;
         /// <summary>
         /// Whether or not to perform validation

@@ -48,8 +48,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\Saltarelle\mscorlib.dll</HintPath>
     </Reference>
+    <Reference Include="Southpaw.DependencyInjection.ClientSide">
+      <HintPath>..\..\..\branches\v3.0\lib\Southpaw\Southpaw.DependencyInjection.ClientSide.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseClassesTests\View\ViewModelCollectionTests.cs" />
     <Compile Include="BaseClassesTests\View\ViewModelTests.cs" />
     <Compile Include="BaseClassesTests\View\ViewTests.cs" />
     <Compile Include="GeneratedClassesTests\ViewModel\JsonSerializationTests.cs" />

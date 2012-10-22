@@ -1,4 +1,5 @@
-﻿using jQueryApi;
+﻿using System.Collections.Generic;
+using jQueryApi;
 using Southpaw.Runtime.Clientside;
 using System.Testing;
 using System.Html;
@@ -11,7 +12,8 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
         [Test]
         public void Render_ShouldWork()
         {
-            var v = new SimpleTestView(null);
+            var v = new SimpleTestView();
+            v.Initialise(null);
             v.DoRender();
             Assert.AreEqual("<p>hello there</p>", v.GetElement().InnerHTML);
         }
@@ -20,7 +22,8 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
         public void Constructor_WithElementInOptions_ShouldSetElementOnView()
         {
             var element = Document.CreateElement("span");
-            var v = new SimpleTestView(new ViewOptions{Element = element});
+            var v = new SimpleTestView();
+            v.Initialise(new SimpleTestViewOptions{Element = element});
             Assert.IsTrue(v.GetElement() == element);
             Assert.AreEqual("span", v.GetElement().TagName.ToLower());
         }
@@ -28,7 +31,8 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
         [Test]
         public void RegisterEvents_ShouldCauseEventsToBeRegistered()
         {
-            var v = new SimpleTestView(null);
+            var v = new SimpleTestView();
+            v.Initialise(null);
             v.DoRender();
             jQuery.Select("p", v.GetElement()).Click();
             Assert.IsTrue(v._isEventCalled);
@@ -37,17 +41,20 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
 
     public class SimpleModel : ViewModel<int>
     {
-        
+        public override bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
+        {
+            return Set(json);
+        }
     }
 
-    public class SimpleTestView : Southpaw.Runtime.Clientside.View//<SimpleModel>
+    public class SimpleTestView : Southpaw.Runtime.Clientside.View<SimpleTestViewOptions>
     {
         internal bool _isEventCalled;
-        public SimpleTestView(ViewOptions/*<SimpleModel>*/ options) : base(options)
+        public SimpleTestView()
         {
         }
 
-        protected override void Render(jQueryEvent evt)
+        protected override void Render()
         {
             Element.InnerHTML = "<p>hello there</p>";
         }
@@ -56,5 +63,9 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
         {
             RegisterEvent("click p", jqe => _isEventCalled = true);
         }
+    }
+
+    public class SimpleTestViewOptions : ViewOptions
+    {
     }
 }

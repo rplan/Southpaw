@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Html;
 using System.Testing;
+using SampleApplication_ClientSide;
 using Southpaw.Runtime.Clientside;
 using jQueryApi;
 
@@ -22,7 +24,7 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
         {
             var v = new SimpleViewModel();
             var dict = new JsDictionary<string, object>();
-            dict["id"] = 12;
+            dict["Id"] = 12;
             v.Set(dict, new ViewSetOptions { IsSilent = true});
             Assert.IsTrue(v.HasChanged());
         }
@@ -32,7 +34,7 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
         {
             var v = new SimpleViewModel();
             var dict = new JsDictionary<string, object>();
-            dict["id"] = 12;
+            dict["Id"] = 12;
             v.Set(dict, null);
             Assert.IsFalse(v.HasChanged());
         }
@@ -42,7 +44,7 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
         {
             var v = new SimpleViewModel();
             var isEventTriggered = false;
-            v.Bind("change:id", evt => isEventTriggered = true);
+            v.Bind("change:Id", evt => isEventTriggered = true);
             v.Id = 12;
             Assert.IsTrue(isEventTriggered);
         }
@@ -62,9 +64,9 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
         {
             var v = new SimpleViewModel();
             var isEventTriggered = false;
-            v.Bind("change:id", evt => isEventTriggered = true);
+            v.Bind("change:Id", evt => isEventTriggered = true);
             var dict = new JsDictionary<string, object>();
-            dict["id"] = 12;
+            dict["Id"] = 12;
             v.Set(dict, null);
             Assert.IsTrue(isEventTriggered);
         }
@@ -76,7 +78,7 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
             var isEventTriggered = false;
             v.Bind("change", evt => isEventTriggered = true);
             var dict = new JsDictionary<string, object>();
-            dict["id"] = 12;
+            dict["Id"] = 12;
             v.Set(dict, null);
             Assert.IsTrue(isEventTriggered);
         }
@@ -86,9 +88,9 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
         {
             var v = new SimpleViewModel();
             var isEventTriggered = false;
-            v.Bind("change:id", evt => isEventTriggered = true);
+            v.Bind("change:Id", evt => isEventTriggered = true);
             var dict = new JsDictionary<string, object>();
-            dict["id"] = 12;
+            dict["Id"] = 12;
             v.Set(dict, new ViewSetOptions { IsSilent = true});
             Assert.IsFalse(isEventTriggered);
         }
@@ -100,7 +102,7 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
             var isEventTriggered = false;
             v.Bind("change", evt => isEventTriggered = true);
             var dict = new JsDictionary<string, object>();
-            dict["id"] = 12;
+            dict["Id"] = 12;
             v.Set(dict, new ViewSetOptions { IsSilent = true});
             Assert.IsFalse(isEventTriggered);
         }
@@ -123,7 +125,7 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
             var isEventTriggered = false;
             v.Bind("change", evt => isEventTriggered = true);
             var dict = new JsDictionary<string, object>();
-            dict["id"] = 12;
+            dict["Id"] = 12;
             v.Set(dict, new ViewSetOptions { IsSilent = true});
             v.Change();
             Assert.IsTrue(isEventTriggered);
@@ -138,7 +140,7 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
             ModelEventHandler listener = evt => isEventTriggered = true;
             v.Bind("change", listener);
             var dict = new JsDictionary<string, object>();
-            dict["id"] = 12;
+            dict["Id"] = 12;
             v.Set(dict);
             Assert.IsTrue(isEventTriggered);
             isEventTriggered = false;
@@ -153,14 +155,14 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
             var v = new SimpleViewModel();
             var isEventTriggered = false;
             ModelEventHandler listener = evt => isEventTriggered = true;
-            v.Bind("change:id", listener);
+            v.Bind("change:Id", listener);
             var dict = new JsDictionary<string, object>();
-            dict["id"] = 12;
+            dict["Id"] = 12;
             v.Set(dict);
             Assert.IsTrue(isEventTriggered);
             isEventTriggered = false;
-            v.Unbind("change:id", listener);
-            dict["id"] = 13;
+            v.Unbind("change:Id", listener);
+            dict["Id"] = 13;
             v.Set(dict);
             Assert.IsFalse(isEventTriggered);
         }
@@ -173,7 +175,7 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
             ModelEventHandler listener = evt => isEventTriggered = true;
             v.Bind("change", listener);
             var dict = new JsDictionary<string, object>();
-            dict["id"] = 12;
+            dict["Id"] = 12;
             v.Set(dict);
             Assert.IsTrue(isEventTriggered);
             isEventTriggered = false;
@@ -187,9 +189,9 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
             var v = new SimpleViewModel();
             var isEventTriggered = false;
             ModelEventHandler listener = evt => isEventTriggered = true;
-            v.Bind("change:id", listener);
+            v.Bind("change:Id", listener);
             var dict = new JsDictionary<string, object>();
-            dict["id"] = 12;
+            dict["Id"] = 12;
             v.Set(dict);
             Assert.IsTrue(isEventTriggered);
             isEventTriggered = false;
@@ -204,21 +206,56 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
             var v = new SimpleViewModel();
             var isEventTriggered = false;
             ModelEventHandler listener = evt => isEventTriggered = true;
-            v.Bind("change:id", listener);
+            v.Bind("change:Id", listener);
             var dict = new JsDictionary<string, object>();
-            dict["id"] = 12;
+            dict["Id"] = 12;
             v.Set(dict, new ViewSetOptions { IsSilent = true});
             Assert.IsFalse(isEventTriggered);
             v.Change();
             Assert.IsTrue(isEventTriggered);
         }
 
+        [Test]
+        public void ToJSON_WithNestedList_ShouldCallToJsonOnListItems()
+        {
+            var v = new BlogViewModel {Id = 9};
+            v.Posts = new List<PostViewModel>
+                          {
+                              new PostViewModel{ Id = 10},
+                              new PostViewModel{ Id = 20}
+                          };
+            var json = v.ToJSON();
+            Assert.AreEqual(Script.Eval("json['Id']"), v.Id);
+            Assert.AreEqual(Script.Eval("json['Posts'][0].Id"), 10);
+            Assert.AreEqual(Script.Eval("json['Posts'][1].Id"), 20);
+        }
+
+        [Test]
+        public void Cid_NewModelShouldBeAssignedAUniqueCID()
+        {
+            var v1 = new BlogViewModel {Id = 9};
+            var v2 = new BlogViewModel {Id = 10};
+            Assert.AreNotEqual(v1.Cid, v2.Cid);
+            Assert.AreNotEqual(v1.Cid, Script.Undefined);
+            Assert.AreNotEqual(v1.Cid, null);
+        }
+
+        [Test]
+        public void ToJSON_ShouldIncludeCid()
+        {
+            var v1 = new BlogViewModel {Id = 9};
+            var json = v1.ToJSON();
+            Assert.AreEqual(json["Cid"], v1.Cid);
+        }
 
     }
 
     public class SimpleViewModel : ViewModel<int>
     {
-        
+        public override bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)
+        {
+            return Set(json, options);
+        }
     }
 }
 

@@ -39,9 +39,21 @@ namespace Southpaw.Generator.Model
             return type.Name.ToLower();
         }
 
-        public static string GetViewModelTypeName(string originalModelTypeName)
+        public static string GetViewModelTypeName(Type originalModelType)
         {
-            return originalModelTypeName + "ViewModel";
+            var n = originalModelType.Name;
+            var isCorLib = originalModelType.Namespace.StartsWith("System");
+            if (originalModelType.IsGenericType)
+            {
+                n = n.Substring(0, n.IndexOf('`'));
+                n += "<";
+                foreach (var gt in originalModelType.GetGenericArguments())
+                    n += GetViewModelTypeName(gt) + ",";
+                n = n.Substring(0, n.Length - 1);
+                n += ">";
+                return n;
+            }
+            return n + (isCorLib ? "" : "ViewModel");
         }
     }
 }

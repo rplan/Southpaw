@@ -53,6 +53,10 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Southpaw.DependencyInjection.ClientSide\Southpaw.DependencyInjection.ClientSide.csproj">
+      <Project>{765b6853-6c02-42c1-ab13-1c98c65cb64e}</Project>
+      <Name>Southpaw.DependencyInjection.ClientSide</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Southpaw.Runtime.Clientside\Southpaw.Runtime.Clientside.csproj">
       <Project>{831a880d-6a78-4e9b-bc0a-69e37b09ca2a}</Project>
       <Name>Southpaw.Runtime.Clientside</Name>

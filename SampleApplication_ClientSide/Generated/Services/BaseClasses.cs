@@ -16,9 +16,9 @@ namespace SampleApplication_ClientSide
 
 namespace SampleApplication_ClientSide
 {
-    public class BlogController_ShowServiceBase : Service
+    public class BlogController_ShowServiceBase : Service<IdServiceParam,SampleApplication_ClientSide.BlogViewModel>
     {
-        public virtual void Call(IdServiceParam query)
+        public override void Call(IdServiceParam query)
         {
             DoCall(query);
         }
@@ -29,27 +29,27 @@ namespace SampleApplication_ClientSide
     }
 }
 
-    namespace SampleApplication_ClientSide
-    {
-public class BlogController_IndexServiceBase : Service
+namespace SampleApplication_ClientSide
 {
-    public virtual void Call()
+    public class BlogController_IndexServiceBase : Service<object,System.Collections.Generic.List<BlogViewModel>>
     {
-        DoCall();
-    }
-    public override string GetUrl()
-    {
-        return "/Blog/Index";
+        public override void Call(object ignored = null)
+        {
+            DoCall();
+        }
+        public override string GetUrl()
+        {
+            return "/Blog/Index";
+        }
     }
 }
-    }
 
 
 namespace SampleApplication_ClientSide
 {
-    public class PostController_ShowServiceBase : Service
+    public class PostController_ShowServiceBase : Service<IdServiceParam,SampleApplication_ClientSide.PostViewModel>
     {
-        public virtual void Call(IdServiceParam query)
+        public override void Call(IdServiceParam query)
         {
             DoCall(query);
         }

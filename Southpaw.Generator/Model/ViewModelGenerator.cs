@@ -235,7 +235,7 @@ using Southpaw.Runtime.Clientside;
                 .Write(Utils.GetNamespace(type.Namespace, _options.NamespaceSubstitution)).EndLine()
                 .Write("{").EndLine()
                 .Indent()
-                .Write("public class ").Write(Utils.GetViewModelTypeName(type.Name)).Write(" : ").Write(GetViewModelBaseTypeName(type.Name)).EndLine()
+                .Write("public class ").Write(Utils.GetViewModelTypeName(type)).Write(" : ").Write(GetViewModelBaseTypeName(type)).EndLine()
                 .Write("{")
                 .EndLine();
 
@@ -254,13 +254,13 @@ using Southpaw.Runtime.Clientside;
                 .Write(Utils.GetNamespace(type.Namespace, _options.NamespaceSubstitution)).EndLine()
                 .Write("{").EndLine()
                 .Indent()
-                .Write("public class ").Write(GetViewModelBaseTypeName(type.Name));
+                .Write("public class ").Write(GetViewModelBaseTypeName(type));
 
             var isInheritsFromOtherViewModel = type.BaseType != typeof (Object);
             if (isInheritsFromOtherViewModel)
             {
                 // assume this has already been validated 
-                outputWriter.Write(" : ").Write(Utils.GetNamespace(type.BaseType.Namespace, _options.NamespaceSubstitution)).Write(".").Write(Utils.GetViewModelTypeName(type.BaseType.Name));
+                outputWriter.Write(" : ").Write(Utils.GetNamespace(type.BaseType.Namespace, _options.NamespaceSubstitution)).Write(".").Write(Utils.GetViewModelTypeName(type.BaseType));
                 _nestedPropertyTypes.Add(type.BaseType);
             }
             else
@@ -317,7 +317,8 @@ using Southpaw.Runtime.Clientside;
             settableProperties = 1; // TODO NCU TMP
             if (settableProperties > 0)
             {
-                outputWriter.Write("public ").Write(isInheritsFromOtherViewModel ? "override " : "virtual ").Write("bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)").EndLine()
+                //outputWriter.Write("[PreserveCase]").EndLine();
+                outputWriter.Write("public override bool SetFromJSON(JsDictionary<string, object> json, ViewSetOptions options)").EndLine()
                     .Write("{").EndLine()
                     .Indent()
                     .Write("if (json == null)").EndLine()
@@ -521,9 +522,9 @@ using Southpaw.Runtime.Clientside;
             return false;
         }
 
-        private string GetViewModelBaseTypeName(string name)
+        private string GetViewModelBaseTypeName(Type type)
         {
-            return Utils.GetViewModelTypeName(name) + "Base";
+            return Utils.GetViewModelTypeName(type) + "Base";
         }
 
         private string GetPropertyTypeNameForMethodSignature(Type type)
@@ -569,7 +570,7 @@ using Southpaw.Runtime.Clientside;
             {
                 return Utils.GetNamespace(type.Namespace, _options.NamespaceSubstitution) + "." + type.Name;
             }
-            return Utils.GetNamespace(type.Namespace, _options.NamespaceSubstitution) + "." + Utils.GetViewModelTypeName(type.Name);
+            return Utils.GetNamespace(type.Namespace, _options.NamespaceSubstitution) + "." + Utils.GetViewModelTypeName(type);
         }
         
         private string GetPropertyTypeNameForJsTypeConversion(Type type)

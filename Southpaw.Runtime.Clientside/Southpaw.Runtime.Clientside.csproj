@@ -41,21 +41,21 @@
     <DocumentationFile>bin\Release\Southpaw.Runtime.Clientside.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Script.jQuery, Version=1.1.0.0, Culture=neutral, PublicKeyToken=8fc0e3af5abcb6c4, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\code\thirdparty\SaltarelleCompiler\Runtime\bin\Script.jQuery.dll</HintPath>
-    </Reference>
-    <Reference Include="Script.Web, Version=1.1.0.0, Culture=neutral, PublicKeyToken=8fc0e3af5abcb6c4, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\code\thirdparty\SaltarelleCompiler\Runtime\bin\Script.Web.dll</HintPath>
-    </Reference>
-    <Reference Include="Script.Linq">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\code\thirdparty\SaltarelleCompiler\Runtime\bin\Script.Linq.dll</HintPath>
-    </Reference>
     <Reference Include="mscorlib">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\code\thirdparty\SaltarelleCompiler\Runtime\bin\mscorlib.dll</HintPath>
+    </Reference>
+    <Reference Include="Script.jQuery, Version=1.4.0.0, Culture=neutral, PublicKeyToken=8fc0e3af5abcb6c4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\Saltarelle\Script.jQuery.dll</HintPath>
+    </Reference>
+    <Reference Include="Script.Linq, Version=1.4.0.0, Culture=neutral, PublicKeyToken=8fc0e3af5abcb6c4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\Saltarelle\Script.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="Script.Web, Version=1.4.0.0, Culture=neutral, PublicKeyToken=8fc0e3af5abcb6c4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\Saltarelle\Script.Web.dll</HintPath>
     </Reference>
     <!--
     <Reference Include="mscorlib">
