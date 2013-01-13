@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using Southpaw.Generator.Model;
@@ -132,6 +133,18 @@ namespace Southpaw.Generator.Tests
         public IEnumerable<KeyValuePair<int, decimal?[]>> Prop { get; set; } 
     }
 
+    public class ModelWithOneValidationAttribute
+    {
+        [Required]
+        public int[] Prop { get; set; }
+    }
+
+    public class ModelWithSeveralValidationAttributeOnOneProperty
+    {
+        [Required]
+        [StringLength(3)]
+        public int[] Prop { get; set; }
+    }
     
     
     [TestFixture]
@@ -697,6 +710,35 @@ namespace Southpaw.Generator.Tests
         public void GetPropertyTypeForGeneration_ShouldNotReturnNullableTypes()
         {
             Assert.AreEqual(ViewModelGenerator.GetPropertyTypeForGeneration(typeof(Nullable<int>)).Count, 0);
+        }
+
+
+        [Test]
+        public void GenerateValidateMethod_WithClassWithNoAttributes_ShouldNotGenerateAnything()
+        {
+            
+            var generator = new ViewModelGenerator(new ViewModelGeneratorOptions());
+            var outputWriter = new OutputWriter();
+            generator.WriteBaseValidateMethod(typeof(ModelWithArrayProperty), outputWriter);
+            Assert.AreEqual("", outputWriter.ToString());
+        }
+
+        [Test]
+        
+        public void GenerateValidateMethod_WithOneAttributeOneProperty_ShouldGenerateCorrectValidation()
+        {
+            
+            var generator = new ViewModelGenerator(new ViewModelGeneratorOptions());
+            var outputWriter = new OutputWriter();
+            generator.WriteBaseValidateMethod(typeof(ModelWithOneValidationAttribute), outputWriter);
+            Assert.AreEqual(@"public override bool Validate(Dictionary<string, object> attributes)
+{
+    string res = null;
+    res = new Southpaw.Runtime.Clientside.Validation.RequiredValidator().Validate(attributes[""Prop""], new Southpaw.Runtime.Clientside.Validation.RequiredValidatorOptions { Property = ""Prop"", AllowEmptyStrings = false, });
+    if (res != null) this.Errors.AddError(""Prop"", res);
+    return this.Errors.IsError;
+}
+", outputWriter.ToString());
         }
 
     }

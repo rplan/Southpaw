@@ -55,5 +55,23 @@ namespace Southpaw.Generator.Model
             }
             return n + (isCorLib ? "" : "ViewModel");
         }
+
+        public static string GetViewModelTypeNameWithNamespace(Type originalModelType, Tuple<string, string> namespaceSubstitution)
+        {
+            var n = GetNamespace(originalModelType.Namespace, namespaceSubstitution);
+            n += "." + originalModelType.Name;
+            var isCorLib = originalModelType.Namespace.StartsWith("System");
+            if (originalModelType.IsGenericType)
+            {
+                n = n.Substring(0, n.IndexOf('`'));
+                n += "<";
+                foreach (var gt in originalModelType.GetGenericArguments())
+                    n += GetViewModelTypeNameWithNamespace(gt, namespaceSubstitution) + ",";
+                n = n.Substring(0, n.Length - 1);
+                n += ">";
+                return n;
+            }
+            return n + (isCorLib ? "" : "ViewModel");
+        }
     }
 }

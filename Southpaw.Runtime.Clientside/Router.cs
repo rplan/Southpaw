@@ -46,11 +46,11 @@ namespace Southpaw.Runtime.Clientside
     }
 }
 
-///
-/// For testing only
-/// 
 namespace Backbone
 {
+    ///
+    /// For testing only
+    /// 
     [Imported(IsRealType = true)]
     public class History2
     {

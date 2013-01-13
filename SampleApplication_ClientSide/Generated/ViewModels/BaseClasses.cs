@@ -15,7 +15,7 @@ namespace SampleApplication_ClientSide
             set { }
         }
 
-        public List<SampleApplication_ClientSide.PostViewModel> Posts
+        public IList<SampleApplication_ClientSide.PostViewModel> Posts
         {
             [InlineCode("{this}.get('Posts')")]
             get { return default(List<SampleApplication_ClientSide.PostViewModel>); }
@@ -37,7 +37,7 @@ namespace SampleApplication_ClientSide
                 return true;
             if (json.ContainsKey("Posts"))
             {
-                List<SampleApplication_ClientSide.PostViewModel> l = new List<SampleApplication_ClientSide.PostViewModel>();
+                IList<SampleApplication_ClientSide.PostViewModel> l = new List<SampleApplication_ClientSide.PostViewModel>();
                 if (this.Posts != null)
                     l = this.Posts;
 
@@ -274,6 +274,17 @@ namespace SampleApplication_ClientSide
             SetPropertyFromString("PostedAt", value, typeof(DateTime), false);
         }
 
+        public override bool Validate(JsDictionary<string, object> attributes)
+        {
+            string res = null;
+            res = new Southpaw.Runtime.Clientside.Validation.RequiredValidator().Validate(attributes["Title"], new Southpaw.Runtime.Clientside.Validation.RequiredValidatorOptions { Property = "Title", AllowEmptyStrings = false, });
+            if (res != null) this.Errors.AddError("Title", res);
+            res = new Southpaw.Runtime.Clientside.Validation.RequiredValidator().Validate(attributes["Content"], new Southpaw.Runtime.Clientside.Validation.RequiredValidatorOptions { Property = "Content", AllowEmptyStrings = false, });
+            if (res != null) this.Errors.AddError("Content", res);
+            res = new Southpaw.Runtime.Clientside.Validation.LengthValidator().Validate(attributes["Content"], new Southpaw.Runtime.Clientside.Validation.LengthValidatorOptions { Property = "Content", MaximumLength = 100, MinimumLength = 4, });
+            if (res != null) this.Errors.AddError("Content", res);
+            return !this.Errors.IsError;
+        }
     }
 }
 

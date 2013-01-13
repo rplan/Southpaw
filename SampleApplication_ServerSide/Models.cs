@@ -1,9 +1,7 @@
-﻿using Southpaw.Runtime.Serverside;
+﻿using System.ComponentModel.DataAnnotations;
+using Southpaw.Runtime.Serverside;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SampleApplication_ServerSide
 {
@@ -36,7 +34,10 @@ namespace SampleApplication_ServerSide
     {
         public int Id { get; set; }
         public User Author { get; set; }
+        [Required]
         public string Title { get; set; }
+        [Required]
+        [StringLength(100, MinimumLength = 4)]
         public string Content { get; set; }
         public Blog Blog { get; set; }
         public DateTime PostedAt { get; set; }

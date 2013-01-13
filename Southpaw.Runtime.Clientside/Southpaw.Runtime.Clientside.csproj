@@ -71,10 +71,12 @@
     -->
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseValidator.cs" />
     <Compile Include="EventUtils.cs" />
     <Compile Include="IEvents.cs" />
     <Compile Include="Router.cs" />
     <Compile Include="Service.cs" />
+    <Compile Include="ValidationResults.cs" />
     <Compile Include="View.cs" />
     <Compile Include="ViewModel.cs" />
     <Compile Include="ViewModelCollection.cs" />

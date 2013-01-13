@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using jQueryApi;
 
 namespace Southpaw.Runtime.Clientside
 {
@@ -27,7 +26,7 @@ namespace Southpaw.Runtime.Clientside
         /// <param name="attributes"></param>
         /// <returns></returns>
         [PreserveName]
-        bool Validate(Dictionary<string, object> attributes);
+        bool Validate(JsDictionary<string, object> attributes);
 
         [PreserveName]
         void Change();
@@ -35,6 +34,9 @@ namespace Southpaw.Runtime.Clientside
         void Clear();
         [ScriptName("toJSON")]
         JsDictionary<string, object> ToJSON();
+
+        [PreserveName]
+        ValidationResults Errors { get; }
 
         void Bind(string eventName, ModelEventHandler callback);
         void ClearEvents();
@@ -109,7 +111,7 @@ namespace Southpaw.Runtime.Clientside
         /// </summary>
         /// <param name="attributes"></param>
         /// <returns></returns>
-        public bool Validate(Dictionary<string, object> attributes)
+        public virtual bool Validate(JsDictionary<string, object> attributes)
         {
             return false;
         }
@@ -142,6 +144,9 @@ namespace Southpaw.Runtime.Clientside
         { 
             return null;
         }
+
+        [IntrinsicProperty]
+        public ValidationResults Errors { get; private set; }
 
         [IntrinsicProperty]
         public int Cid { get; set; }

@@ -248,6 +248,38 @@ namespace SampleApplication_ClientSide_Tests.BaseClassesTests.View
             Assert.AreEqual(json["Cid"], v1.Cid);
         }
 
+        [Test]
+        public void Validate_WithValidData_ShouldReturnTrue_AndClearValidationErrors()
+        {
+            
+            var v1 = new PostViewModel {Id = 9};
+            var dict = new JsDictionary<string, object>();
+            dict["Content"] = "Hello there content";
+            dict["Title"] = "My Title";
+            var res = v1.Validate(dict);
+
+            Assert.IsTrue(res, "Validate method should return 'true' with valid properties passed in");
+            Assert.IsFalse(v1.Errors.IsError, "'Errors' property on model should have no errors with valid properties passed in");
+            Assert.AreEqual(0, v1.Errors.ErrorMessages.Count, "'Errors' property on model should have no error messages with valid properties passed in");
+            Assert.AreEqual(0, v1.Errors.ErrorsByProperty.Count, "'Errors' property on model should have no errors by property with valid properties passed in");
+        }
+
+        [Test]
+        public void Validate_WithInvalidData_ShouldReturnFalse_AndStoreErrorsOnModel()
+        {
+            
+            var v1 = new PostViewModel {Id = 9};
+            var dict = new JsDictionary<string, object>();
+            dict["Content"] = "Hello there content";
+            var res = v1.Validate(dict);
+
+            Assert.IsFalse(res, "Validate method should return 'false' with valid properties passed in");
+            Assert.IsTrue(v1.Errors.IsError, "'Errors' property on model should have errors with invalid properties passed in");
+            Assert.AreEqual(1, v1.Errors.ErrorMessages.Count, "'Errors' property on model should have no error messages with valid properties passed in");
+            Assert.AreEqual(1, v1.Errors.ErrorsByProperty.Count, "'Errors' property on model should have no errors by property with valid properties passed in");
+        }
+
+
     }
 
     public class SimpleViewModel : ViewModel<int>

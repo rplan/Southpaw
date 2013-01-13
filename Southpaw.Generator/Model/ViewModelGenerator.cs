@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -40,15 +41,27 @@ namespace Southpaw.Generator.Model
         private List<Type> _generatedTypes = new List<Type>();
         private List<Type> _enumsForGeneration = new List<Type>();
         internal List<Type> _nestedPropertyTypes = new List<Type>();
+        internal Dictionary<Type, string> _validatorMap = new Dictionary<Type, string>
+            {
+                { typeof(RangeAttribute), "Southpaw.Runtime.Clientside.Validation.RangeValidator" },
+                { typeof(RegularExpressionAttribute), "Southpaw.Runtime.Clientside.Validation.RegexValidator"},
+                { typeof(RequiredAttribute), "Southpaw.Runtime.Clientside.Validation.RequiredValidator" },
+                { typeof(StringLengthAttribute), "Southpaw.Runtime.Clientside.Validation.LengthValidator" },
+            }; 
 
         public ViewModelGenerator(ViewModelGeneratorOptions options)
         {
             _options = options;
+            if (options.ValidationAttributeMap != null)
+            foreach (var kvp in options.ValidationAttributeMap)
+            {
+                _validatorMap[kvp.Key] = kvp.Value;
+            }
         }
 
         public List<GeneratedFileDescriptor> Generate(Assembly assembly)
         {
-            StringBuilder baseClassesContent = new StringBuilder(@"using System;
+            var baseClassesContent = new StringBuilder(@"using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Southpaw.Runtime.Clientside;
@@ -260,7 +273,7 @@ using Southpaw.Runtime.Clientside;
             if (isInheritsFromOtherViewModel)
             {
                 // assume this has already been validated 
-                outputWriter.Write(" : ").Write(Utils.GetNamespace(type.BaseType.Namespace, _options.NamespaceSubstitution)).Write(".").Write(Utils.GetViewModelTypeName(type.BaseType));
+                outputWriter.Write(" : ").Write(Utils.GetViewModelTypeNameWithNamespace(type.BaseType, _options.NamespaceSubstitution));
                 _nestedPropertyTypes.Add(type.BaseType);
             }
             else
@@ -288,15 +301,16 @@ using Southpaw.Runtime.Clientside;
                 if (p.Name == "Id")
                     continue;
 
-                var propertyTypeName = GetPropertyTypeNameForMethodSignature(p.PropertyType);
+                var returnTypeName = GetPropertyTypeNameForMethodSignature(p.PropertyType, false);
+                var implementationTypeName = GetPropertyTypeNameForMethodSignature(p.PropertyType);
                 var jsPropertyName = GetJsPropertyName(p.Name);
-                outputWriter.Write("public ").Write(propertyTypeName).Write(" ").Write(p.Name)
+                outputWriter.Write("public ").Write(returnTypeName).Write(" ").Write(p.Name)
                     .EndLine()
                     .Write("{").EndLine()
                     .Indent()
                     .Write("[InlineCode(\"{this}.get('").Write(jsPropertyName).Write("')\")]").EndLine()
                     //.Write("get { return ").Write("GetProperty<").Write(propertyTypeName).Write(">(\"").Write(jsPropertyName).Write("\"); }").EndLine()
-                    .Write("get { return default(").Write(propertyTypeName).Write("); }").EndLine()
+                    .Write("get { return default(").Write(implementationTypeName).Write("); }").EndLine()
                     .Write("[InlineCode(\"{this}.set({{'").Write(jsPropertyName).Write("': {value}}})\")]").EndLine()
                     //.Write("set { SetProperty(\"").Write(jsPropertyName).Write("\", value); }").EndLine()
                     .Write("set { }").EndLine()
@@ -354,7 +368,7 @@ using Southpaw.Runtime.Clientside;
                             .Write("else").EndLine()
                             .Write("{").EndLine()
                             .Indent()
-                            .Write(GetPropertyTypeNameForMethodSignature(p.PropertyType)).Write(" x = new ").Write(GetPropertyTypeNameForMethodSignature(p.PropertyType)).Write("();").EndLine()
+                            .Write(GetPropertyTypeNameForMethodSignature(p.PropertyType, false)).Write(" x = new ").Write(GetPropertyTypeNameForMethodSignature(p.PropertyType)).Write("();").EndLine()
                             .Write("if (!x.SetFromJSON((JsDictionary<string, object>)json[\"").Write(jsPropertyName).Write("\"], options))").EndLine()
                             .Indent()
                             .Write("return false;").EndLine()
@@ -368,7 +382,7 @@ using Southpaw.Runtime.Clientside;
                     {
                         // ViewModelCollection
                         outputWriter
-                            .Write(GetPropertyTypeNameForMethodSignature(p.PropertyType)).Write(" l = new ").Write(GetPropertyTypeNameForMethodSignature(p.PropertyType)).Write("();").EndLine()
+                            .Write(GetPropertyTypeNameForMethodSignature(p.PropertyType, false)).Write(" l = new ").Write(GetPropertyTypeNameForMethodSignature(p.PropertyType)).Write("();").EndLine()
                             .Write("if (this.").Write(p.Name).Write(" != null)").EndLine()
                             .Indent()
                             .Write("l = this.").Write(p.Name).Write(";").EndLine()
@@ -434,12 +448,77 @@ using Southpaw.Runtime.Clientside;
                 }
             }
 
+            // write 'Validate' method
+            WriteBaseValidateMethod(type, outputWriter);
+
+
             outputWriter.Unindent()
                 .Write("}").EndLine()
                 .Unindent()
                 .Write("}").EndLine().EndLine();
 
             return outputWriter.ToString();
+        }
+
+        internal void WriteBaseValidateMethod(Type type, OutputWriter outputWriter)
+        {
+            var hasValidationAttributes = type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                                              .Any(p => p.GetCustomAttributes(typeof (ValidationAttribute), true).Any());
+            if (!hasValidationAttributes)
+                return;
+
+            /*
+             * TODO:
+             * - Validate() to validate current object properties. Should use exact code below.
+             * - below code should add type validation: Southpaw.Runtime.Clientside.Validation.Type.IntValidator.Validate(string, params);
+             */
+            outputWriter.Write("public override bool Validate(JsDictionary<string, object> attributes)")
+                        .EndLine()
+                        .Write("{").EndLine()
+                        .Indent()
+                        .Write("string res = null;")
+                        .EndLine();
+            foreach(var p in type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                                 .Where(p => p.GetCustomAttributes(true).Any(x => typeof (ValidationAttribute).IsAssignableFrom(x.GetType()))))
+            {
+                var attrs = p.GetCustomAttributes(true);
+                foreach (var attr in attrs)
+                {
+                    if (attr.GetType().IsAbstract)
+                        continue;
+                    if (_validatorMap.ContainsKey(attr.GetType()))
+                    {
+                        outputWriter.Write("res = new " + _validatorMap[attr.GetType()] + "().Validate(attributes[\"" +
+                                           p.Name + "\"], new " + _validatorMap[attr.GetType()] + "Options { Property = \"" + p.Name + "\", ");
+                        foreach (var ap in attr.GetType().GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
+                        {
+                            outputWriter.Write(ap.Name + " = ");
+                            if (ap.PropertyType == typeof(string))
+                                outputWriter.Write("\"" + ap.GetValue(attr, null) + "\"");
+                            else
+                                // TODO: will fail with datetime, char. Not used in any of the standard
+                                // validators. Need to implement for custom validators.
+                                outputWriter.Write(ap.GetValue(attr, null).ToString().ToLower());
+                            outputWriter.Write(", ");
+                        }
+                        outputWriter.Write("});")
+                                    .EndLine();
+                        outputWriter.Write("if (res != null) this.Errors.AddError(\"" + p.Name + "\", res);")
+                                    .EndLine();
+                    }
+                    else
+                    {
+                        throw new ArgumentException(string.Format(
+                            "Property '{0}' in type '{1}' has a validator of type '{2}', which isn't mapped", p.Name,
+                            type.FullName, attr.GetType().FullName));
+                    }
+                }
+            }
+                outputWriter
+                        .Write("return !this.Errors.IsError;")
+                        .EndLine()
+                        .Unindent()
+                        .Write("}").EndLine();
         }
 
         private string GetJsPropertyName(string p)
@@ -527,7 +606,7 @@ using Southpaw.Runtime.Clientside;
             return Utils.GetViewModelTypeName(type) + "Base";
         }
 
-        private string GetPropertyTypeNameForMethodSignature(Type type)
+        private string GetPropertyTypeNameForMethodSignature(Type type, bool isImplementation = true)
         {
             if (Utils.PrimitiveTypes.Contains(type))
             {
@@ -547,8 +626,8 @@ using Southpaw.Runtime.Clientside;
                 var baseType = type.GetGenericArguments()[0];
                 if (IsViewModelType(baseType))
                     //return "ViewModelCollection<" + GetPropertyTypeNameForMethodSignature(baseType) + ">";
-                    return "List<" + GetPropertyTypeNameForMethodSignature(baseType) + ">";
-                return "List<" + GetPropertyTypeNameForMethodSignature(baseType) + ">";
+                    return (isImplementation ? "" : "I" ) + "List<" + GetPropertyTypeNameForMethodSignature(baseType) + ">";
+                return (isImplementation ? "" : "I" ) + "List<" + GetPropertyTypeNameForMethodSignature(baseType) + ">";
             }
             if (type.Name == "Dictionary`2" || type.Name == "IDictionary`2")
             {
@@ -570,7 +649,7 @@ using Southpaw.Runtime.Clientside;
             {
                 return Utils.GetNamespace(type.Namespace, _options.NamespaceSubstitution) + "." + type.Name;
             }
-            return Utils.GetNamespace(type.Namespace, _options.NamespaceSubstitution) + "." + Utils.GetViewModelTypeName(type);
+            return Utils.GetViewModelTypeNameWithNamespace(type, _options.NamespaceSubstitution);
         }
         
         private string GetPropertyTypeNameForJsTypeConversion(Type type)
@@ -589,7 +668,7 @@ using Southpaw.Runtime.Clientside;
             if (type.Name == "List`1" || type.Name == "IList`1" || type.Name == "IEnumerable`1")
             {
                 var baseType = type.GetGenericArguments()[0];
-                return "List<" + GetPropertyTypeNameForJsTypeConversion(baseType) + ">";
+                return "IList<" + GetPropertyTypeNameForJsTypeConversion(baseType) + ">";
             }
             if (type.Name == "Dictionary`2" || type.Name == "IDictionary`2")
             {

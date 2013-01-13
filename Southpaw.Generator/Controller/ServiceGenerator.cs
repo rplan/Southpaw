@@ -263,7 +263,8 @@ using Southpaw.DependencyInjection.ClientSide;
                     outputWriter.Write(args.GeneratedTypeName).Write(",");
                 else
                     outputWriter.Write("object,");
-                outputWriter.Write(Utils.GetNamespace(returnType.Namespace, _options.NamespaceSubstitution) + "." + Utils.GetViewModelTypeName(returnType)).Write(">")
+                outputWriter.Write(Utils.GetViewModelTypeNameWithNamespace(returnType, _viewModelGeneratorOptions.NamespaceSubstitution)).Write(">")
+                //outputWriter.Write(Utils.GetNamespace(returnType.Namespace, _options.NamespaceSubstitution) + "." + Utils.GetViewModelTypeName(returnType)).Write(">")
                     .EndLine()
                     .Write("{").EndLine()
                     .Indent();
@@ -374,7 +375,7 @@ using Southpaw.DependencyInjection.ClientSide;
                     return "System.Nullable<" +GetParameterTypeForCallMethod(baseType) + ">";
                 return GetParameterTypeForCallMethod(baseType) + "?";
             }
-            return Utils.GetNamespace(parameterType.Namespace, _viewModelGeneratorOptions.NamespaceSubstitution) + "." + Utils.GetViewModelTypeName(parameterType);
+            return Utils.GetViewModelTypeNameWithNamespace(parameterType, _viewModelGeneratorOptions.NamespaceSubstitution);
         }
 
         #region helper methods

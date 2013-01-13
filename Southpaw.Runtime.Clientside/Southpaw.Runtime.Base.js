@@ -11,12 +11,12 @@ Southpaw.Runtime.Clientside.GlobalSettings.viewModelSettings = {};
 Southpaw.Runtime.Clientside.EventUtils = function () {
     this._callbacks = {};
 
-    this.bind = function (eventName, callback) {
+    this.bind = function (eventName, callback, ctx) {
         if (this._callbacks[eventName] === undefined) {
             this._callbacks[eventName] = [];
         }
         if (!this._callbacks[eventName].contains(callback)) {
-            this._callbacks[eventName].add(callback);
+            this._callbacks[eventName].add([callback, ctx]);
         }
     };
 
@@ -24,13 +24,13 @@ Southpaw.Runtime.Clientside.EventUtils = function () {
         Object.clearKeys(this._callbacks);
     };
 
-    this.unbind = function (eventName, callback) {
+    this.unbind = function (eventName, callback, ctx) {
         if (this._callbacks[eventName] === undefined) {
             return;
         }
         var idx = -1;
         for (var i = 0; i < this._callbacks[eventName].length; i++) {
-            if (this._callbacks[eventName][i] === callback) {
+            if (this._callbacks[eventName][i][0] === callback && this._callbacks[eventName][i][1] == ctx) {
                 idx = i;
                 break;
             }
@@ -41,12 +41,22 @@ Southpaw.Runtime.Clientside.EventUtils = function () {
     };
 
     this.trigger = function (eventName, evt) {
-        if (this._callbacks[eventName] === undefined) {
+        if (this._callbacks[eventName] === undefined && this._callbacks['all'] === undefined) {
             return;
         }
-        var len = this._callbacks[eventName].length;
-        for (var i = 0; i < len; i++) {
-            this._callbacks[eventName][i](evt);
+        var len;
+        if (eventName !== 'all' && this._callbacks[eventName] !== undefined) {
+            len = this._callbacks[eventName].length;
+            for (var i = 0; i < len; i++) {
+                this._callbacks[eventName][i][0].call(this._callbacks[eventName][i][1], evt);
+            }
+        }
+        if (this._callbacks['all'] !== undefined) {
+            len = this._callbacks['all'].length;
+            for (var j = 0; j < len; j++) {
+                // todo: will only return pass first arg to call back. should pass all.
+                this._callbacks['all'][j][0].call(this._callbacks['all'][j][1], eventName, evt);
+            }
         }
     };
 };
@@ -59,6 +69,8 @@ Southpaw.Runtime.Clientside.ViewModel$1 = function () {
     this._previousAttrs = {};
     this._changed = {};
     this.cid = ++Southpaw.Runtime.Clientside.CidCounter;
+    this._collections = [];
+    this.errors = new Southpaw.Runtime.Clientside.ValidationResults();
 };
 Southpaw.Runtime.Clientside.ViewModel$1.__typeName = 'ViewModel';
 
@@ -180,16 +192,16 @@ Southpaw.Runtime.Clientside.ViewModel$1.prototype = {
         }
     },
 
-    bind: function (eventName, callback) {
-        this._eventUtils.bind(eventName, callback);
+    bind: function (eventName, callback, ctx) {
+        this._eventUtils.bind(eventName, callback, ctx || this);
     },
 
     clearEvents: function () {
         this._eventUtils.clear();
     },
 
-    unbind: function (eventName, callback) {
-        this._eventUtils.unbind(eventName, callback);
+    unbind: function (eventName, callback, ctx) {
+        this._eventUtils.unbind(eventName, callback, ctx || this);
     },
 
     trigger: function (eventName, evt) {
@@ -206,7 +218,7 @@ Southpaw.Runtime.Clientside.ViewModel$1.prototype = {
             if (json[x] instanceof Array) {
                 var y = [];
                 for(var i = 0; i < json[x].length; i++) {
-                    if (json[x][i].toJSON)
+                    if (json[x][i] && json[x][i].toJSON)
                         y.push(json[x][i].toJSON());
                     else
                         y.push(json[x][i]);
@@ -216,6 +228,16 @@ Southpaw.Runtime.Clientside.ViewModel$1.prototype = {
         }
         json['Cid'] = this.cid;
         return json;
+    },
+    setCollection: function (collection) {
+        if (this._collections.indexOf(collection)<0)
+            this._collections.push(collection);
+    },
+    unsetCollection: function (collection) {
+        var idx = this._collections.indexOf(collection) > 0;
+        if (idx > -1) {
+            this._collections.splice(idx, 1);
+        }
     }
 };
 
@@ -273,8 +295,19 @@ Southpaw.Runtime.Clientside.Service = function () {
         var that = this;
         if (this._onErrorCallbacks.length > 0) {
             params.error = function (jqXhr, textStatus, errorThrown) {
+                var data;
+                if (jqXhr.responseText) {
+                    try {
+                        if (jsonReviver)
+                            data = JSON.parse(resp, jsonReviver);
+                        else
+                            data = JSON.parse(resp);
+                    } catch(e) {
+                        
+                    }
+                }
                 for (var i = 0; i < that._onErrorCallbacks.length; i++) {
-                    that._onErrorCallbacks[i].call(that);
+                    that._onErrorCallbacks[i].call(that, data, jqXhr);
                 }
             };
         }
@@ -302,12 +335,15 @@ Southpaw.Runtime.Clientside.ViewModelCollection = function (type) {
     this.items = [];
     var _previousItems = [];
     this.type = type;
+    this._index = -1;
 };
 
 // TODO: no concept of identity; so hard/impossible to determine whether duplicates exist in a list (should throw an error if duplicates exist)
 Southpaw.Runtime.Clientside.ViewModelCollection.prototype = {
     add: function (item, options) {
         this.items.push(item);
+        item.setCollection(this);
+        item.bind('all', this._modelEvent, this);
         // TODO argument to trigger should be jquery event
         if (!options || (options && !options.silent)) {
             this.trigger('add', item);
@@ -316,17 +352,28 @@ Southpaw.Runtime.Clientside.ViewModelCollection.prototype = {
     },
     addRange: function (items, options) {
         for (var i = 0; i < items.length; i++) {
-            if (items[i])
-                this.add(items[i], options);
+            if (items[i]) {
+                this.add(items[i], _.extend({}, options, { silent: true }));
+                if (!options || (options && !options.silent)) {
+                    var all = this._eventUtils._callbacks['all'];
+                    this._eventUtils._callbacks['all'] = undefined;
+                    this.trigger('add', items[i]);
+                    this.trigger('change');
+                    this._eventUtils._callbacks['all'] = all;
+                    this.trigger('all');
+                }
+            }
         }
     },
     remove: function (item, options) {
         var idx = this._indexOf(item);
         if (idx >= 0) {
-            var removedItems = this.items.splice(idx, 1);
+            var removedItem = this.items.splice(idx, 1)[0];
+            removedItem.unsetCollection(this);
+            item.unbind('all', this._modelEvent, this);
             // TODO: should be a jquery event
             if (!options || (options && !options.silent)) {
-                this.trigger('remove', removedItems);
+                this.trigger('remove', removedItem);
                 this.trigger('change');
             }
             return 1;
@@ -374,17 +421,20 @@ Southpaw.Runtime.Clientside.ViewModelCollection.prototype = {
         }
         return -1;
     },
+    _modelEvent: function (eventName, evt) {
+        this.trigger.apply(this, arguments);
+    },
 
-    bind: function (eventName, callback) {
-        this._eventUtils.bind(eventName, callback);
+    bind: function (eventName, callback, ctx) {
+        this._eventUtils.bind(eventName, callback, ctx || this);
     },
 
     clearEvents: function () {
         this._eventUtils.clear();
     },
 
-    unbind: function (eventName, callback) {
-        this._eventUtils.unbind(eventName, callback);
+    unbind: function (eventName, callback, ctx) {
+        this._eventUtils.unbind(eventName, callback, ctx || this);
     },
 
     trigger: function (eventName, evt) {
@@ -442,8 +492,31 @@ Southpaw.Runtime.Clientside.ViewModelCollection.prototype = {
                 return this.items[i];
         }
         return null;
+    },
+    getEnumerator: function () {
+        var that = this;
+        var _index = -1;
+        return {
+            moveNext: function () {
+                _index++;
+                return (_index < that.items.length);
+            },
+            reset: function () {
+                _index = -1;
+            },
+            get_current: function () {
+                if (_index < 0 || _index >= that.items.length)
+        			throw 'Invalid operation';
+        		var k = that.items[_index];
+        	    return k;
+        	},
+            dispose: function () {
+            }
+        };
     }
 };
+
+Type.registerClass(window, 'Southpaw.Runtime.Clientside.ViewModelCollection', Southpaw.Runtime.Clientside.ViewModelCollection, null, [ss_IEnumerable]);
 
 Southpaw.Runtime.Clientside.ViewOptions = function () {
 };
@@ -460,6 +533,28 @@ Southpaw.Runtime.Clientside.ViewOptions.prototype = {
 	    }
 	    return json;
 	}
+};
+
+Southpaw.Runtime.Clientside.ValidationResults = function() {
+    this.isError = false;
+    this.errorMessages = [];
+    this.errorsByProperty = {};
+};
+
+Southpaw.Runtime.Clientside.ValidationResults.prototype = {
+    addError: function(propertyName, errorMessage) {
+        this.errorMessages.push(errorMessage);
+        this.errorsByProperty[propertyName] = this.errorsByProperty[propertyName] || [];
+        this.errorsByProperty[propertyName].push(errorMessage);
+        this.isError = true;
+        return this;
+    },
+    clear: function() {
+        this.isError = false;
+        this.errorMessages = [];
+        this.errorsByProperty = {};
+        return this;
+    }
 };
 
 Southpaw.Runtime.Clientside.ViewOptions$1 = function(TModel) {
@@ -774,3 +869,96 @@ Southpaw.Runtime.Clientside.Router.prototype = {
         }
     });
 })(window);
+
+
+Southpaw.Runtime.Clientside.Validation = {};
+Southpaw.Runtime.Clientside.Validation.ErrorMessages = {
+    "Southpaw.Runtime.Clientside.Validation.RangeValidator": "",
+    "Southpaw.Runtime.Clientside.Validation.RegexValidator": "",
+    "Southpaw.Runtime.Clientside.Validation.RequiredValidator": "",
+    "Southpaw.Runtime.Clientside.Validation.LengthValidator": "",
+    "Southpaw.Runtime.Clientside.Validation.LengthValidator_MinOnly": "",
+    "Southpaw.Runtime.Clientside.Validation.LengthValidator_MaxOnly": "",
+};
+
+Southpaw.Runtime.Clientside.Validation.RangeValidator = function () { };
+Southpaw.Runtime.Clientside.Validation.RegexValidator = function () { };
+Southpaw.Runtime.Clientside.Validation.RequiredValidator = function () { };
+Southpaw.Runtime.Clientside.Validation.LengthValidator = function () { };
+
+(function() {
+    var formatValidationMessage = function (msg, params) {
+        if (params.errorMessage !== null && params.errorMessage !== undefined)
+            msg = params.errorMessage;
+        for (var key in params) {
+            if (!params.hasOwnProperty(key))
+                continue;
+            var r = '{' + key + '}';
+            var idx = msg.indexOf(r);
+            if (idx == -1)
+                continue;
+            msg = msg.substr(0, idx) + params[key] + msg.substr(r.length);
+        }
+        return msg;
+    };
+    
+    /*
+    example call:
+    new Southpaw...RangeValidator().validate(3, {
+        minimum: 0, 
+        maximum: 100,
+        property: 'investment percent',
+        errorMessage: 'unfortunately, that\'s the incorrect answer' });
+    */
+    Southpaw.Runtime.Clientside.Validation.RangeValidator.prototype = {
+        options: {},
+        validate: function(obj, params) {
+            if (params) _.extend(this.options, params);
+            if (obj === null || obj === undefined)
+                return null;
+            if (obj < this.options.minimum || obj > this.options.maximum)
+                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.RangeValidator", this.options);
+            return null;
+        }
+    };
+    
+    Southpaw.Runtime.Clientside.Validation.RegexValidator.prototype = {
+        options: {},
+        validate: function(obj, params) {
+            if (params) _.extend(this.options, params);
+            if (obj === null || obj === undefined)
+                return null;
+            if (!options.pattern.match(obj))
+                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.RegexValidator", this.options);
+            return null;
+        }
+    };
+    
+    Southpaw.Runtime.Clientside.Validation.RequiredValidator.prototype = {
+        options: {},
+        validate: function(obj, params) {
+            if (params) _.extend(this.options, params);
+            if (obj === null || obj === undefined || (!this.options["AllowEmptyStrings"] && obj ===""))
+                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.RequiredValidator", this.options);
+            return null;
+        }
+    };
+    
+    Southpaw.Runtime.Clientside.Validation.LengthValidator.prototype = {
+        options: {},
+        validate: function(obj, params) {
+            if (params) _.extend(this.options, params);
+            if (obj === null || obj === undefined)
+                return null;
+            if ((this.options.minimumLength === null || this.options.minimumLength === undefined)
+                && obj.length > this.options.maximumLength)
+                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.LengthValidator_MaxOnly", this.options);
+            if ((this.options.maximumLength === null || this.options.maximumLength === undefined)
+                && obj.length < this.options.minimumLength)
+                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.LengthValidator_MinOnly", this.options);
+            if (obj.length < this.options.minimumLength || obj.length > this.options.maximumLength)
+                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.LengthValidator", this.options);
+            return null;
+        }
+    };
+})();

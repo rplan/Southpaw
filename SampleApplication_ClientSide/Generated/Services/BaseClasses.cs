@@ -31,7 +31,7 @@ namespace SampleApplication_ClientSide
 
 namespace SampleApplication_ClientSide
 {
-    public class BlogController_IndexServiceBase : Service<object,System.Collections.Generic.List<BlogViewModel>>
+    public class BlogController_IndexServiceBase : Service<object,System.Collections.Generic.List<SampleApplication_ClientSide.BlogViewModel>>
     {
         public override void Call(object ignored = null)
         {

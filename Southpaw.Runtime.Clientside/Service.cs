@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using jQueryApi;
 
 namespace Southpaw.Runtime.Clientside
 {
@@ -64,7 +65,7 @@ namespace Southpaw.Runtime.Clientside
     public interface IService<TQuery, TResponse>
         where TQuery: class
     {
-        void AddOnErrorCallback(Action onError);
+        void AddOnErrorCallback(Action<JsDictionary<string, object>, jQueryApi.jQueryXmlHttpRequest>  onError);
         void AddOnSuccessCallback(Action<JsDictionary<string, object>> onSuccess);
         string GetUrl();
         string HttpMethod { get; }
@@ -107,7 +108,7 @@ namespace Southpaw.Runtime.Clientside
 
         public abstract void Call(TQuery query = null);
 
-        public void AddOnErrorCallback(Action onError)
+        public void AddOnErrorCallback(Action<JsDictionary<string, object>, jQueryXmlHttpRequest> onError)
         {
         }
 
