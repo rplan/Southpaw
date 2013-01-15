@@ -140,33 +140,37 @@ Southpaw.Runtime.Clientside.ViewModel$1.prototype = {
                 this.set(p);
                 return;
             case 'int':
-                n = parseInt(newValue);
-                if (!isNaN(n)) {
+                n = Southpaw.Runtime.Clientside.Validation.TypeConverters.toInt(newValue);
+                if (n !== null) {
                     p[propertyName] = n;
                     this.set(p);
                 }
                 return;
             case 'float':
-                n = parseFloat(newValue);
-                if (!isNaN(n)) {
+                n = Southpaw.Runtime.Clientside.Validation.TypeConverters.toFloat(newValue);
+                if (n !== null) {
                     p[propertyName] = n;
                     this.set(p);
                 }
                 return;
             case 'date':
-                n = newValue.split('/');
-                if (n.length == 3
-                    && (n[0].length == 1 || n[0].length == 2)
-                    && (n[1].length == 1 || n[0].length == 2)
-                    && (n[2].length == 4)) {
-                    var d = parseInt(n[0]),
-                        m = parseInt(n[1]),
-                        y = parseInt(n[2]);
-                    n = new Date(y, m, d);
+                n = Southpaw.Runtime.Clientside.Validation.TypeConverters.toDate(newValue);
+                if (n !== null) {
                     p[propertyName] = n;
                     this.set(p);
                 }
-
+            case 'bool':
+                n = Southpaw.Runtime.Clientside.Validation.TypeConverters.toBool(newValue);
+                if (n !== null) {
+                    p[propertyName] = n;
+                    this.set(p);
+                }
+            case 'char':
+                n = Southpaw.Runtime.Clientside.Validation.TypeConverters.toChar(newValue);
+                if (n !== null) {
+                    p[propertyName] = n;
+                    this.set(p);
+                }
             default:
                 throw "Unknown type '" + type + "' used to set property '" + propertyName + "'";
         }
@@ -872,24 +876,73 @@ Southpaw.Runtime.Clientside.Router.prototype = {
 
 
 Southpaw.Runtime.Clientside.Validation = {};
-Southpaw.Runtime.Clientside.Validation.ErrorMessages = {
-    "Southpaw.Runtime.Clientside.Validation.RangeValidator": "",
-    "Southpaw.Runtime.Clientside.Validation.RegexValidator": "",
-    "Southpaw.Runtime.Clientside.Validation.RequiredValidator": "",
-    "Southpaw.Runtime.Clientside.Validation.LengthValidator": "",
-    "Southpaw.Runtime.Clientside.Validation.LengthValidator_MinOnly": "",
-    "Southpaw.Runtime.Clientside.Validation.LengthValidator_MaxOnly": "",
-};
+Southpaw.Runtime.Clientside.Validation.Type = {};
 
-Southpaw.Runtime.Clientside.Validation.RangeValidator = function () { };
+Southpaw.Runtime.Clientside.Validation.RangeValidator = function() { };
 Southpaw.Runtime.Clientside.Validation.RegexValidator = function () { };
 Southpaw.Runtime.Clientside.Validation.RequiredValidator = function () { };
 Southpaw.Runtime.Clientside.Validation.LengthValidator = function () { };
+Southpaw.Runtime.Clientside.Validation.Type.IntValidator = function () { };
+Southpaw.Runtime.Clientside.Validation.Type.DateValidator = function () { };
+Southpaw.Runtime.Clientside.Validation.Type.FloatValidator = function () { };
+Southpaw.Runtime.Clientside.Validation.Type.BoolValidator = function () { };
+Southpaw.Runtime.Clientside.Validation.Type.CharValidator = function () { };
 
-(function() {
+Southpaw.Runtime.Clientside.TypeConverters = {};
+Southpaw.Runtime.Clientside.TypeConverters.toInt = function(newValue) {
+    if (newValue === null || newValue === undefined)
+        return null;
+    var x = parseInt(newValue);
+    if (isNaN(x))
+        return null;
+    return x;
+};
+Southpaw.Runtime.Clientside.TypeConverters.toFloat = function(newValue) {
+    if (newValue === null || newValue === undefined)
+        return null;
+    var x = parseFloat(newValue);
+    if (isNaN(x))
+        return null;
+    return x;
+};
+Southpaw.Runtime.Clientside.TypeConverters.toBool = function (newValue) {
+    if (newValue === null || newValue === undefined)
+        return null;
+    var n = newValue.toLowerCase();
+    if (n == 'true' || n == '1')
+        return true;
+    if (n == 'false' || n == '0')
+        return false;
+    return null;
+};
+Southpaw.Runtime.Clientside.TypeConverters.toChar = function (newValue) {
+    if (newValue && newValue.length == 1)
+        return newValue;
+    return null;
+};
+Southpaw.Runtime.Clientside.TypeConverters.toDate = function(newValue) {
+    if (newValue === null || newValue === undefined)
+        return null;
+    var n = newValue.split('/');
+    if (n.length == 3
+        && (n[0].length == 1 || n[0].length == 2)
+        && (n[1].length == 1 || n[0].length == 2)
+        && (n[2].length == 4)) {
+        var d = parseInt(n[0]),
+            m = parseInt(n[1]),
+            y = parseInt(n[2]);
+        n = new Date(y, m, d);
+        return n;
+    }
+    return null;
+};
+
+(function () {
     var formatValidationMessage = function (msg, params) {
         if (params.errorMessage !== null && params.errorMessage !== undefined)
             msg = params.errorMessage;
+        else
+            msg = Southpaw.Runtime.Clientside.GlobalSettings.messageProvider.getMessage(msg);
         for (var key in params) {
             if (!params.hasOwnProperty(key))
                 continue;
@@ -897,7 +950,7 @@ Southpaw.Runtime.Clientside.Validation.LengthValidator = function () { };
             var idx = msg.indexOf(r);
             if (idx == -1)
                 continue;
-            msg = msg.substr(0, idx) + params[key] + msg.substr(r.length);
+            msg = msg.substr(0, idx) + params[key] + msg.substr(idx + r.length);
         }
         return msg;
     };
@@ -911,54 +964,115 @@ Southpaw.Runtime.Clientside.Validation.LengthValidator = function () { };
         errorMessage: 'unfortunately, that\'s the incorrect answer' });
     */
     Southpaw.Runtime.Clientside.Validation.RangeValidator.prototype = {
-        options: {},
         validate: function(obj, params) {
-            if (params) _.extend(this.options, params);
             if (obj === null || obj === undefined)
                 return null;
-            if (obj < this.options.minimum || obj > this.options.maximum)
-                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.RangeValidator", this.options);
+            if (obj < params.minimum || obj > params.maximum)
+                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.RangeValidator", params);
             return null;
         }
     };
     
     Southpaw.Runtime.Clientside.Validation.RegexValidator.prototype = {
-        options: {},
-        validate: function(obj, params) {
-            if (params) _.extend(this.options, params);
+        validate: function (obj, params) {
             if (obj === null || obj === undefined)
                 return null;
-            if (!options.pattern.match(obj))
-                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.RegexValidator", this.options);
+            if (!params.pattern.test(obj))
+                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.RegexValidator", params);
             return null;
         }
     };
     
     Southpaw.Runtime.Clientside.Validation.RequiredValidator.prototype = {
-        options: {},
         validate: function(obj, params) {
-            if (params) _.extend(this.options, params);
-            if (obj === null || obj === undefined || (!this.options["AllowEmptyStrings"] && obj ===""))
-                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.RequiredValidator", this.options);
+            if (obj === null || obj === undefined || (!params["AllowEmptyStrings"] && obj ===""))
+                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.RequiredValidator", params);
             return null;
         }
     };
     
     Southpaw.Runtime.Clientside.Validation.LengthValidator.prototype = {
-        options: {},
         validate: function(obj, params) {
-            if (params) _.extend(this.options, params);
             if (obj === null || obj === undefined)
                 return null;
-            if ((this.options.minimumLength === null || this.options.minimumLength === undefined)
-                && obj.length > this.options.maximumLength)
-                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.LengthValidator_MaxOnly", this.options);
-            if ((this.options.maximumLength === null || this.options.maximumLength === undefined)
-                && obj.length < this.options.minimumLength)
-                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.LengthValidator_MinOnly", this.options);
-            if (obj.length < this.options.minimumLength || obj.length > this.options.maximumLength)
-                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.LengthValidator", this.options);
+            if ((params.minimumLength === null || params.minimumLength === undefined)
+                && obj.length > params.maximumLength)
+                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.LengthValidator_MaxOnly", params);
+            if ((params.maximumLength === null || params.maximumLength === undefined)
+                && obj.length < params.minimumLength)
+                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.LengthValidator_MinOnly", params);
+            if (obj.length < params.minimumLength || obj.length > params.maximumLength)
+                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.LengthValidator", params);
+            return null;
+        }
+    };
+    Southpaw.Runtime.Clientside.Validation.Type.IntValidator.prototype = {
+        validate: function (obj, params) {
+            if (obj === null || obj === undefined)
+                return null;
+            if (Southpaw.Runtime.Clientside.TypeConverters.toInt(obj) == null)
+                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.Type.IntValidator", params);
+            return null;
+        }
+    };
+    Southpaw.Runtime.Clientside.Validation.Type.FloatValidator.prototype = {
+        validate: function (obj, params) {
+            if (obj === null || obj === undefined)
+                return null;
+            if (Southpaw.Runtime.Clientside.TypeConverters.toFloat(obj) == null)
+                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.Type.FloatValidator", params);
+            return null;
+        }
+    };
+    Southpaw.Runtime.Clientside.Validation.Type.BoolValidator.prototype = {
+        validate: function (obj, params) {
+            if (obj === null || obj === undefined || obj === true || obj === false)
+                return null;
+            if (Southpaw.Runtime.Clientside.TypeConverters.toBool(obj) == null)
+                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.Type.BoolValidator", params);
+            return null;
+        }
+    };
+    Southpaw.Runtime.Clientside.Validation.Type.DateValidator.prototype = {
+        validate: function (obj, params) {
+            if (obj === null || obj === undefined || (obj.toUTCString && obj.toDateString))
+                return null;
+            if (Southpaw.Runtime.Clientside.TypeConverters.toDate(obj) == null)
+                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.Type.DateValidator", params);
+            return null;
+        }
+    };
+    Southpaw.Runtime.Clientside.Validation.Type.CharValidator.prototype = {
+        validate: function(obj, params) {
+            if (obj === null || obj === undefined)
+                return null;
+            if (Southpaw.Runtime.Clientside.TypeConverters.toChar(obj) == null)
+                return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.Type.CharValidator", params);
             return null;
         }
     };
 })();
+
+Southpaw.Runtime.Clientside.Messages = {
+    "Southpaw.Runtime.Clientside.Validation.RangeValidator": "{property} should be between {minimum} and {maximum}",
+    "Southpaw.Runtime.Clientside.Validation.RegexValidator": "{property} is not valid",
+    "Southpaw.Runtime.Clientside.Validation.RequiredValidator": "{property} is required",
+    "Southpaw.Runtime.Clientside.Validation.LengthValidator": "{property} should be between {minimumLength} and {maximumLength} characters long",
+    "Southpaw.Runtime.Clientside.Validation.LengthValidator_MinOnly": "{property} should be at least {minimumLength} characters long",
+    "Southpaw.Runtime.Clientside.Validation.LengthValidator_MaxOnly": "{property} should be at most {maximumLength} characters long",
+    "Southpaw.Runtime.Clientside.Validation.Type.IntValidator": "{property} should be a valid number",
+    "Southpaw.Runtime.Clientside.Validation.Type.DateValidator": "{property} should be a valid date",
+    "Southpaw.Runtime.Clientside.Validation.Type.FloatValidator": "{property} should be a valid decimal number",
+    "Southpaw.Runtime.Clientside.Validation.Type.BoolValidator": "{property} should be 'true' or 'false'",
+    "Southpaw.Runtime.Clientside.Validation.Type.CharValidator": "{property} should be a single character",
+};
+Southpaw.Runtime.Clientside.MessageProvider = function() {
+};
+
+Southpaw.Runtime.Clientside.MessageProvider.prototype.getMessage = function (key) {
+    var msg = Southpaw.Runtime.Clientside.Messages[key];
+    if (msg == undefined)
+        throw 'No message defined for key "' + key + '"';
+    return msg;
+};
+Southpaw.Runtime.Clientside.GlobalSettings.messageProvider = new Southpaw.Runtime.Clientside.MessageProvider();

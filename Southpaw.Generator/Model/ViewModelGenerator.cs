@@ -48,6 +48,18 @@ namespace Southpaw.Generator.Model
                 { typeof(RequiredAttribute), "Southpaw.Runtime.Clientside.Validation.RequiredValidator" },
                 { typeof(StringLengthAttribute), "Southpaw.Runtime.Clientside.Validation.LengthValidator" },
             }; 
+        internal Dictionary<Type, string> _typeValidatorMap = new Dictionary<Type, string>
+            {
+                { typeof(int), "Southpaw.Runtime.Clientside.Validation.Type.IntValidator" },
+                { typeof(float), "Southpaw.Runtime.Clientside.Validation.Type.FloatValidator" },
+                { typeof(double), "Southpaw.Runtime.Clientside.Validation.Type.FloatValidator" },
+                { typeof(DateTime), "Southpaw.Runtime.Clientside.Validation.Type.DateValidator" },
+                { typeof(decimal), "Southpaw.Runtime.Clientside.Validation.Type.FloatValidator" },
+                { typeof(bool), "Southpaw.Runtime.Clientside.Validation.Type.BoolValidator" },
+                { typeof(char), "Southpaw.Runtime.Clientside.Validation.Type.CharValidator" },
+                { typeof(short), "Southpaw.Runtime.Clientside.Validation.Type.IntValidator" },
+                { typeof(long), "Southpaw.Runtime.Clientside.Validation.Type.IntValidator" },
+            }; 
 
         public ViewModelGenerator(ViewModelGeneratorOptions options)
         {
@@ -462,11 +474,6 @@ using Southpaw.Runtime.Clientside;
 
         internal void WriteBaseValidateMethod(Type type, OutputWriter outputWriter)
         {
-            var hasValidationAttributes = type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                                              .Any(p => p.GetCustomAttributes(typeof (ValidationAttribute), true).Any());
-            if (!hasValidationAttributes)
-                return;
-
             /*
              * TODO:
              * - Validate() to validate current object properties. Should use exact code below.
@@ -476,12 +483,26 @@ using Southpaw.Runtime.Clientside;
                         .EndLine()
                         .Write("{").EndLine()
                         .Indent()
+                        .Write("this.Errors.Clear();")
+                        .EndLine()
                         .Write("string res = null;")
                         .EndLine();
-            foreach(var p in type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                                 .Where(p => p.GetCustomAttributes(true).Any(x => typeof (ValidationAttribute).IsAssignableFrom(x.GetType()))))
+            foreach(var p in type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+                                 //.Where(p => p.GetCustomAttributes(true).Any(x => typeof (ValidationAttribute).IsAssignableFrom(x.GetType()))))
             {
-                var attrs = p.GetCustomAttributes(true);
+                // validate type
+                if (_typeValidatorMap.ContainsKey(p.PropertyType))
+                {
+                    outputWriter.Write("res = new " + _typeValidatorMap[p.PropertyType] + "().Validate(attributes[\"" +
+                                       p.Name + "\"], new Southpaw.Runtime.Clientside.Validation.Type.TypeValidatorOptions { Property = \"" +
+                                       p.Name + "\" });")
+                                .EndLine()
+                                .Write("if (res != null) this.Errors.AddError(\"" + p.Name + "\", res);")
+                                .EndLine();
+                }
+
+                // validate attributes
+                var attrs = p.GetCustomAttributes(true).Where(x => typeof (ValidationAttribute).IsAssignableFrom(x.GetType()));
                 foreach (var attr in attrs)
                 {
                     if (attr.GetType().IsAbstract)

@@ -30,9 +30,7 @@ namespace Southpaw.Runtime.Clientside.Validation
     }
 
     [Imported(IsRealType = true)]
-    public class RangeValidator : BaseValidator
-    {
-    }
+    public class RangeValidator : BaseValidator { }
 
     [Imported(IsRealType = false)]
     public class RegexValidatorOptions : ValidatorOptions
@@ -42,9 +40,7 @@ namespace Southpaw.Runtime.Clientside.Validation
     }
 
     [Imported(IsRealType = true)]
-    public class RegexValidator : BaseValidator
-    {
-    }
+    public class RegexValidator : BaseValidator { }
 
     [Imported(IsRealType = false)]
     public class RequiredValidatorOptions : ValidatorOptions
@@ -54,9 +50,7 @@ namespace Southpaw.Runtime.Clientside.Validation
     }
 
     [Imported(IsRealType = true)]
-    public class RequiredValidator : BaseValidator
-    {
-    }
+    public class RequiredValidator : BaseValidator { }
 
     [Imported(IsRealType = false)]
     public class LengthValidatorOptions : ValidatorOptions
@@ -68,7 +62,21 @@ namespace Southpaw.Runtime.Clientside.Validation
     }
 
     [Imported(IsRealType = true)]
-    public class LengthValidator : BaseValidator
-    {
-    }
+    public class LengthValidator : BaseValidator { }
+}
+
+namespace Southpaw.Runtime.Clientside.Validation.Type
+{
+    [Imported(IsRealType = false)]
+    public class TypeValidatorOptions : ValidatorOptions { }
+    [Imported(IsRealType = true)]
+    public class IntValidator : BaseValidator { }
+    [Imported(IsRealType = true)]
+    public class DateValidator : BaseValidator { }
+    [Imported(IsRealType = true)]
+    public class FloatValidator : BaseValidator { }
+    [Imported(IsRealType = true)]
+    public class BoolValidator : BaseValidator { }
+    [Imported(IsRealType = true)]
+    public class CharValidator : BaseValidator { }
 }

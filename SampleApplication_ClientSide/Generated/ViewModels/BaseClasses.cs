@@ -84,6 +84,14 @@ namespace SampleApplication_ClientSide
             SetPropertyFromString("Name", value, typeof(string), false);
         }
 
+        public override bool Validate(JsDictionary<string, object> attributes)
+        {
+            this.Errors.Clear();
+            string res = null;
+            res = new Southpaw.Runtime.Clientside.Validation.Type.IntValidator().Validate(attributes["Id"], new Southpaw.Runtime.Clientside.Validation.Type.TypeValidatorOptions { Property = "Id" });
+            if (res != null) this.Errors.AddError("Id", res);
+            return !this.Errors.IsError;
+        }
     }
 }
 
@@ -141,6 +149,14 @@ namespace SampleApplication_ClientSide
             SetPropertyFromString("LastName", value, typeof(string), false);
         }
 
+        public override bool Validate(JsDictionary<string, object> attributes)
+        {
+            this.Errors.Clear();
+            string res = null;
+            res = new Southpaw.Runtime.Clientside.Validation.Type.IntValidator().Validate(attributes["Id"], new Southpaw.Runtime.Clientside.Validation.Type.TypeValidatorOptions { Property = "Id" });
+            if (res != null) this.Errors.AddError("Id", res);
+            return !this.Errors.IsError;
+        }
     }
 }
 
@@ -167,6 +183,14 @@ namespace SampleApplication_ClientSide
             SetPropertyFromString("Permission", value, typeof(int), false);
         }
 
+        public override bool Validate(JsDictionary<string, object> attributes)
+        {
+            this.Errors.Clear();
+            string res = null;
+            res = new Southpaw.Runtime.Clientside.Validation.Type.IntValidator().Validate(attributes["Permission"], new Southpaw.Runtime.Clientside.Validation.Type.TypeValidatorOptions { Property = "Permission" });
+            if (res != null) this.Errors.AddError("Permission", res);
+            return !this.Errors.IsError;
+        }
     }
 }
 
@@ -276,13 +300,18 @@ namespace SampleApplication_ClientSide
 
         public override bool Validate(JsDictionary<string, object> attributes)
         {
+            this.Errors.Clear();
             string res = null;
+            res = new Southpaw.Runtime.Clientside.Validation.Type.IntValidator().Validate(attributes["Id"], new Southpaw.Runtime.Clientside.Validation.Type.TypeValidatorOptions { Property = "Id" });
+            if (res != null) this.Errors.AddError("Id", res);
             res = new Southpaw.Runtime.Clientside.Validation.RequiredValidator().Validate(attributes["Title"], new Southpaw.Runtime.Clientside.Validation.RequiredValidatorOptions { Property = "Title", AllowEmptyStrings = false, });
             if (res != null) this.Errors.AddError("Title", res);
             res = new Southpaw.Runtime.Clientside.Validation.RequiredValidator().Validate(attributes["Content"], new Southpaw.Runtime.Clientside.Validation.RequiredValidatorOptions { Property = "Content", AllowEmptyStrings = false, });
             if (res != null) this.Errors.AddError("Content", res);
             res = new Southpaw.Runtime.Clientside.Validation.LengthValidator().Validate(attributes["Content"], new Southpaw.Runtime.Clientside.Validation.LengthValidatorOptions { Property = "Content", MaximumLength = 100, MinimumLength = 4, });
             if (res != null) this.Errors.AddError("Content", res);
+            res = new Southpaw.Runtime.Clientside.Validation.Type.DateValidator().Validate(attributes["PostedAt"], new Southpaw.Runtime.Clientside.Validation.Type.TypeValidatorOptions { Property = "PostedAt" });
+            if (res != null) this.Errors.AddError("PostedAt", res);
             return !this.Errors.IsError;
         }
     }
