@@ -578,11 +578,11 @@ Southpaw.Runtime.Clientside.ViewOptions$1 = function(TModel) {
 
 Southpaw.Runtime.Clientside.Router = function (options) {
     this._eventUtils = new Southpaw.Runtime.Clientside.EventUtils();
-    options || (options = {});
-    if (options.routes)
-        this.routes = options.routes;
-    this._bindRoutes();
-    this.initialize.apply(this, arguments);
+    // options || (options = {});
+    // this.routes = options.routes ? options.routes : [];
+    this.routes = [];
+    this.resources = [];
+    this.prefix = null;
 };
 
 // TODO: global NS
@@ -590,25 +590,27 @@ var namedParam    = /:\w+/g;
 var splatParam    = /\*\w+/g;
 var escapeRegExp  = /[-[\]{}()+?.,\\^$|#\s]/g;
 Southpaw.Runtime.Clientside.Router.prototype = {
-    initialize: function(){},
+    initialise: function() {
+        Backbone.history || (Backbone.history = new Backbone.History2);
+        this._bindRoutes();
+        this.startHistory();
+        this.options = {};
+        // this.initialise.apply(this, arguments);
+    },
 
-    // Manually bind a single named route to a callback. For example:
-    //
-    //     this.route('search/:query/p:num', 'search', function(query, num) {
-    //       ...
-    //     });
-    //
+    // define a route
     route: function(route, name, callback) {
-      Backbone.history || (Backbone.history = new Backbone.History2);
-      route = this._routeToRegExp(route);
-      if (!callback) callback = this[name];
-      Backbone.history.route(route, _.bind(function(fragment) {
-        var args = this._extractParameters(route, fragment);
-        callback && callback.apply(this, args);
-        this.trigger.apply(this, ['route:' + name].concat(args));
-        // TODO NCU Backbone.history.trigger('route', this, name, args);
-      }, this));
-      return this;
+        if (typeof name == 'function') {
+            callback = name;
+            name = route;
+        }
+        if (!callback) callback = this[name];
+        this.routes.push([ route, name, callback ]);
+        return this;
+    },
+    resource: function (route, name, router) {
+        this.resources.push([route, name, router]);
+        return this;
     },
 
     // Simple proxy to `Backbone.history` to save a fragment into the history.
@@ -618,7 +620,8 @@ Southpaw.Runtime.Clientside.Router.prototype = {
     getCurrentHash: function() {
       return Backbone.history.getHash();
     },
-    startHistory: function() {
+    startHistory: function () {
+        if (Backbone.history.started) return;
         Backbone.history.start();
     },
     stopHistory: function() {
@@ -628,15 +631,30 @@ Southpaw.Runtime.Clientside.Router.prototype = {
     // Bind all defined routes to `Backbone.history`. We have to reverse the
     // order of the routes here to support behavior where the most general
     // routes can be defined at the bottom of the route map.
-    _bindRoutes: function() {
-      if (!this.routes) return;
-      var routes = [];
-      for (var route in this.routes) {
-        routes.unshift([route, this.routes[route]]);
-      }
-      for (var i = 0, l = routes.length; i < l; i++) {
-        this.route(routes[i][0], routes[i][1], this[routes[i][1]]);
-      }
+    _bindRoutes: function () {
+        if (!this.routes) return;
+        var prefix = this.prefix,
+            prefixedRoute = null,
+            prefixedRouteRegex = null;
+        //for (var route in this.routes) {
+            //routes.unshift([route, this.routes[route]]);
+        //}
+        for (var i = 0, l = this.routes.length; i < l; i++) {
+            prefixedRoute = prefix ? prefix + (this.routes[i][0].length > 0 ? '/' + this.routes[i][0] : '') : this.routes[i][0];
+            prefixedRouteRegex = this._routeToRegExp(prefixedRoute);
+            Backbone.history.route(prefixedRouteRegex, _.bind((function(routeRegex, route, routeName, callback) {
+                return function(fragment) {
+                    var args = this._extractParameters(routeRegex, route, fragment);
+                    callback && callback.apply(this, [args]);
+                    this.trigger.apply(this, ['route:' + routeName].concat(args));
+                    // TODO NCU Backbone.history.trigger('route', this, name, args);
+                };
+            })(prefixedRouteRegex, prefixedRoute, this.routes[i][1], this.routes[i][2]), this));
+        }
+        for (var j = 0, m = this.resources.length; j < m; j++) {
+            this.resources[j][2].prefix = this.resources[j][0];
+            this.resources[j][2].initialise();
+        }
     },
 
     // Convert a route string into a regular expression, suitable for matching
@@ -650,8 +668,20 @@ Southpaw.Runtime.Clientside.Router.prototype = {
 
     // Given a route, and a URL fragment that it matches, return the array of
     // extracted parameters.
-    _extractParameters: function(route, fragment) {
-      return route.exec(fragment).slice(1);
+    _extractParameters: function(routeRegex, route, fragment) {
+        var matches = routeRegex.exec(fragment).slice(1);
+        var res = {};
+        var namedParamMatch, namedParams = [];
+        while ((namedParamMatch = namedParam.exec(route)) != null) {
+            namedParams.push(namedParamMatch[0]);
+        }
+        for (var i = 0, l = namedParams.length; i < l; i++) {
+            res[namedParams[i].substring(1)] = matches[i];
+        }
+        var splats = splatParam.exec(route);
+        if (splats && splats.length > 0)
+            res['splat'] = matches[matches.length - 1];
+        return res;
     },
 
     bind: function (eventName, callback) {
@@ -687,6 +717,12 @@ Southpaw.Runtime.Clientside.Router.prototype = {
     var History2 = window.Backbone.History2 = function() {
         this.handlers = [];
         _.bindAll(this, 'checkUrl');
+        
+        // Ensure that `History` can be used outside of the browser.
+        if (typeof window !== 'undefined') {
+          this.location = window.location;
+          this.history = window.history;
+        }
     };
 
     // Cached regex for cleaning leading hashes and slashes .
@@ -706,10 +742,9 @@ Southpaw.Runtime.Clientside.Router.prototype = {
 
         // Gets the true hash value. Cannot use location.hash directly due to bug
         // in Firefox where location.hash will always be decoded.
-        getHash: function(windowOverride) {
-            var loc = windowOverride ? windowOverride.location : window.location;
-            var match = loc.href.match(/#(.*)$/);
-            return match ? match[1] : '';
+        getHash: function(window) {
+          var match = (window || this).location.href.match(/#(.*)$/);
+          return match ? match[1] : '';
         },
 
         // Get the cross-browser normalized URL fragment, either from the URL,
@@ -731,7 +766,7 @@ Southpaw.Runtime.Clientside.Router.prototype = {
         // Start the hash change handling, returning `true` if the current URL matches
         // an existing route, and `false` otherwise.
         start: function(options) {
-            if (History2.started) throw new Error("Backbone.history has already been started");
+            if (History2.started) return;// throw new Error("Backbone.history has already been started");
             History2.started = true;
 
             // Figure out the initial configuration. Do we need an iframe?
@@ -846,7 +881,7 @@ Southpaw.Runtime.Clientside.Router.prototype = {
                 // fragment to store history.
             } else if (this._wantsHashChange) {
                 this.fragment = frag;
-                this._updateHash(window.location, frag, options.replace);
+                this._updateHash(this.location, frag, options.replace);
                 if (this.iframe && (frag != this.getFragment(this.getHash(this.iframe)))) {
                     // Opening and closing the iframe tricks IE7 and earlier to push a history entry on hash-tag change.
                     // When replace is true, we don't want this.
@@ -977,7 +1012,7 @@ Southpaw.Runtime.Clientside.TypeConverters.toDate = function(newValue) {
         validate: function (obj, params) {
             if (obj === null || obj === undefined)
                 return null;
-            if (!params.pattern.test(obj))
+            if (!new RegExp(params.pattern).test(obj))
                 return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.RegexValidator", params);
             return null;
         }
@@ -1010,7 +1045,8 @@ Southpaw.Runtime.Clientside.TypeConverters.toDate = function(newValue) {
         validate: function (obj, params) {
             if (obj === null || obj === undefined)
                 return null;
-            if (Southpaw.Runtime.Clientside.TypeConverters.toInt(obj) == null)
+            var i = Southpaw.Runtime.Clientside.TypeConverters.toInt(obj);
+            if (i == null || (typeof obj == 'number' ? i !== obj : i.toString() !== obj))
                 return formatValidationMessage("Southpaw.Runtime.Clientside.Validation.Type.IntValidator", params);
             return null;
         }

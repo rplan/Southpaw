@@ -1,18 +1,30 @@
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Southpaw.Runtime.Clientside;
 
 namespace Southpaw.Runtime.Clientside
 {
+    public delegate void RoutingHandler(JsDictionary<string, string> routeParameters);
+
     [Imported(IsRealType = true)]
     [IgnoreGenericArguments]
     public abstract class Router
     {
-        public void Route(string route, string routeName, jQueryApi.jQueryEventHandler callback)
+        public Router Route(string route, string routeName, jQueryApi.jQueryEventHandler callback)
         {
+            return this;
         }
 
-        public void Route(string route, jQueryApi.jQueryEventHandler callback)
+        public Router Route(string route, RoutingHandler callback)
         {
+            return this;
         }
+
+        public Router Resource(string route, string routeName, Router nestedRouter)
+        {
+            return this;
+        }
+
 
         public void Navigate(string fragment)
         {
@@ -26,6 +38,11 @@ namespace Southpaw.Runtime.Clientside
         public void StartHistory() { }
 
         public void StopHistory(){}
+
+        public virtual Router Initialise()
+        {
+            return this;
+        }
 
     }
 
@@ -59,6 +76,19 @@ namespace Backbone
         }
 
         public void Stop()
+        {
+        }
+
+        public void CheckUrl()
+        {
+            
+        }
+
+        public void Navigate(string hash)
+        {
+        }
+
+        public void Navigate(string hash, RouteNavigateOptions routeNavigateOptions)
         {
         }
     }
