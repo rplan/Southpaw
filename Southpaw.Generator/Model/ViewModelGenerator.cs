@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -41,12 +40,12 @@ namespace Southpaw.Generator.Model
         private List<Type> _generatedTypes = new List<Type>();
         private List<Type> _enumsForGeneration = new List<Type>();
         internal List<Type> _nestedPropertyTypes = new List<Type>();
-        internal Dictionary<Type, string> _validatorMap = new Dictionary<Type, string>
+        internal Dictionary<string, string> _validatorMap = new Dictionary<string, string>
             {
-                { typeof(RangeAttribute), "Southpaw.Runtime.Clientside.Validation.RangeValidator" },
-                { typeof(RegularExpressionAttribute), "Southpaw.Runtime.Clientside.Validation.RegexValidator"},
-                { typeof(RequiredAttribute), "Southpaw.Runtime.Clientside.Validation.RequiredValidator" },
-                { typeof(StringLengthAttribute), "Southpaw.Runtime.Clientside.Validation.LengthValidator" },
+                { typeof(RangeAttribute).FullName, "Southpaw.Runtime.Clientside.Validation.RangeValidator" },
+                { typeof(RegularExpressionAttribute).FullName, "Southpaw.Runtime.Clientside.Validation.RegexValidator"},
+                { typeof(RequiredAttribute).FullName, "Southpaw.Runtime.Clientside.Validation.RequiredValidator" },
+                { typeof(StringLengthAttribute).FullName, "Southpaw.Runtime.Clientside.Validation.LengthValidator" },
             }; 
         internal Dictionary<Type, string> _typeValidatorMap = new Dictionary<Type, string>
             {
@@ -68,6 +67,18 @@ namespace Southpaw.Generator.Model
             foreach (var kvp in options.ValidationAttributeMap)
             {
                 _validatorMap[kvp.Key] = kvp.Value;
+            }
+        }
+
+        public void AddValidator(string csharpType, string jsType)
+        {
+            if (csharpType == null)
+                throw new ArgumentNullException("csharpType");
+            if (jsType == null)
+                throw new ArgumentNullException("jsType");
+            if (!_validatorMap.ContainsKey(csharpType))
+            {
+                _validatorMap[csharpType] = jsType;
             }
         }
 
@@ -461,7 +472,7 @@ using Southpaw.Runtime.Clientside;
             }
 
             // write 'Validate' method
-            WriteBaseValidateMethod(type, outputWriter);
+            GenerateBaseValidateMethod(type, outputWriter);
 
 
             outputWriter.Unindent()
@@ -472,7 +483,7 @@ using Southpaw.Runtime.Clientside;
             return outputWriter.ToString();
         }
 
-        internal void WriteBaseValidateMethod(Type type, OutputWriter outputWriter)
+        internal void GenerateBaseValidateMethod(Type type, OutputWriter outputWriter)
         {
             /*
              * TODO:
@@ -484,15 +495,27 @@ using Southpaw.Runtime.Clientside;
                         .Write("{").EndLine()
                         .Indent()
                         .Write("this.Errors.Clear();")
-                        .EndLine()
-                        .Write("string res = null;")
                         .EndLine();
+            var isResInitialised = false;
+            Action maybeInitialiseRes;
+            maybeInitialiseRes = () =>
+                                {
+
+                                    if (!isResInitialised)
+                                    {
+                                        outputWriter
+                                            .Write("string res = null;")
+                                            .EndLine();
+                                        isResInitialised = true;
+                                    }
+                                };
             foreach(var p in type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
                                  //.Where(p => p.GetCustomAttributes(true).Any(x => typeof (ValidationAttribute).IsAssignableFrom(x.GetType()))))
             {
                 // validate type
                 if (_typeValidatorMap.ContainsKey(p.PropertyType))
                 {
+                    maybeInitialiseRes();
                     outputWriter.Write("res = new " + _typeValidatorMap[p.PropertyType] + "().Validate(attributes[\"" +
                                        p.Name + "\"], new Southpaw.Runtime.Clientside.Validation.Type.TypeValidatorOptions { Property = \"" +
                                        p.Name + "\" });")
@@ -507,15 +530,18 @@ using Southpaw.Runtime.Clientside;
                 {
                     if (attr.GetType().IsAbstract)
                         continue;
-                    if (_validatorMap.ContainsKey(attr.GetType()))
+                    if (_validatorMap.ContainsKey(attr.GetType().FullName))
                     {
-                        outputWriter.Write("res = new " + _validatorMap[attr.GetType()] + "().Validate(attributes[\"" +
-                                           p.Name + "\"], new " + _validatorMap[attr.GetType()] + "Options { Property = \"" + p.Name + "\", ");
+                        maybeInitialiseRes();
+                        outputWriter.Write("res = new " + _validatorMap[attr.GetType().FullName] + "().Validate(attributes[\"" +
+                                           p.Name + "\"], new " + _validatorMap[attr.GetType().FullName] + "Options { Property = \"" + p.Name + "\", ");
                         foreach (var ap in attr.GetType().GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
                         {
+                            if (ap.PropertyType == typeof (Type))
+                                continue; // Type doesn't exist in Saltarelle
                             outputWriter.Write(ap.Name + " = ");
                             if (ap.PropertyType == typeof(string))
-                                outputWriter.Write("\"" + ap.GetValue(attr, null) + "\"");
+                                outputWriter.Write("\"" + ap.GetValue(attr, null).ToString().Replace("\\", "\\\\") + "\"");
                             else
                                 // TODO: will fail with datetime, char. Not used in any of the standard
                                 // validators. Need to implement for custom validators.

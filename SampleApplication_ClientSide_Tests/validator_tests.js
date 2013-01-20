@@ -9,9 +9,9 @@ test('RangeValidator should validate range', function() {
 });
 
 test('RegexValidator should validate to pattern', function() {
-    var res = new Southpaw.Runtime.Clientside.Validation.RegexValidator().validate(3, { pattern: /[0-9]/, property: 'TestProp' });
+    var res = new Southpaw.Runtime.Clientside.Validation.RegexValidator().validate(3, { pattern: '[0-9]', property: 'TestProp' });
     equal(res, null);
-    res = new Southpaw.Runtime.Clientside.Validation.RegexValidator().validate('hello', { pattern: /[0-9]/, property: 'TestProp' });
+    res = new Southpaw.Runtime.Clientside.Validation.RegexValidator().validate('hello', { pattern: '[0-9]', property: 'TestProp' });
     equal(res, 'TestProp is not valid');
 });
 test('LengthValidator should validate string length', function() {

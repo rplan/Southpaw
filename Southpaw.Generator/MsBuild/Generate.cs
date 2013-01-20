@@ -61,6 +61,7 @@ namespace Southpaw.Generator.MsBuild
             get;
             set;
         }
+        public ITaskItem[] ValidatorMappings { get; set; }
 
 
         public override bool Execute()
@@ -78,8 +79,19 @@ namespace Southpaw.Generator.MsBuild
             var outputProject = currentProjects.GetLoadedProjects(OutputProjectFile).FirstOrDefault();
             if (outputProject == null)
             {
-                outputProject = new Microsoft.Build.Evaluation.Project(OutputProjectFile);
-                outputProject.FullPath = OutputProjectFile;
+                outputProject = new Project(OutputProjectFile) {FullPath = OutputProjectFile};
+            }
+
+            var vmg = new ViewModelGenerator(
+                new ViewModelGeneratorOptions
+                    {
+                        NamespaceSubstitution =
+                            new Tuple<string, string>(ControllerNamespaceSubstitutionSource,
+                                                      ControllerNamespaceSubstitutionDestination)
+                    });
+            foreach (var ti in ValidatorMappings)
+            {
+                vmg.AddValidator(ti.GetMetadata("csharpType"), ti.GetMetadata("jsType"));
             }
 
             if (!AddToProject(
@@ -88,8 +100,7 @@ namespace Southpaw.Generator.MsBuild
                 OutputProjectFile, 
                 BusinessObjectNamespaceSubstitutionSource, 
                 BusinessObjectNamespaceSubstitutionDestination,
-                () => new ViewModelGenerator(
-                    new ViewModelGeneratorOptions { NamespaceSubstitution = new Tuple<string, string>(ControllerNamespaceSubstitutionSource, ControllerNamespaceSubstitutionDestination) })
+                () => vmg
                 ))
                 return false;
             if (!AddToProject(

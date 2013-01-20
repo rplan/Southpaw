@@ -1,11 +1,16 @@
 using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 
 namespace Southpaw.Runtime.Clientside.Validation
 {
     public class BaseValidator
     {
-        public string Validate(object o, ValidatorOptions parameters)
+        /// <summary>
+        /// The main Validation method.
+        /// </summary>
+        /// <param name="o">the object to validate</param>
+        /// <param name="parameters">validator-specific parameters</param>
+        /// <returns>the error message string, or null if the object is valid</returns>
+        public virtual string Validate(object o, ValidatorOptions parameters)
         {
             return null;
         }
@@ -36,7 +41,7 @@ namespace Southpaw.Runtime.Clientside.Validation
     public class RegexValidatorOptions : ValidatorOptions
     {
         [IntrinsicProperty]
-        public Regex Pattern { get; set; }     
+        public string Pattern { get; set; }     
     }
 
     [Imported(IsRealType = true)]

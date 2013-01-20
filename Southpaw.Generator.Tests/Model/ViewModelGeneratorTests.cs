@@ -719,7 +719,7 @@ namespace Southpaw.Generator.Tests
             
             var generator = new ViewModelGenerator(new ViewModelGeneratorOptions());
             var outputWriter = new OutputWriter();
-            generator.WriteBaseValidateMethod(typeof(ModelWithArrayProperty), outputWriter);
+            generator.GenerateBaseValidateMethod(typeof(ModelWithArrayProperty), outputWriter);
             Assert.AreEqual("", outputWriter.ToString());
         }
 
@@ -730,7 +730,7 @@ namespace Southpaw.Generator.Tests
             
             var generator = new ViewModelGenerator(new ViewModelGeneratorOptions());
             var outputWriter = new OutputWriter();
-            generator.WriteBaseValidateMethod(typeof(ModelWithOneValidationAttribute), outputWriter);
+            generator.GenerateBaseValidateMethod(typeof(ModelWithOneValidationAttribute), outputWriter);
             Assert.AreEqual(@"public override bool Validate(Dictionary<string, object> attributes)
 {
     string res = null;

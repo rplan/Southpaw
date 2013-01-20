@@ -3,7 +3,7 @@ using jQueryApi;
 
 namespace Southpaw.Runtime.Clientside
 {
-    [Imported]
+    [Imported(IsRealType = true)]
     public class EventUtils
     {
         public void Bind(string eventName, jQueryEventHandler callback)
